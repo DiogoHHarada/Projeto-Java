@@ -4,6 +4,7 @@
  */
 package VIEW;
 
+import Controller.Controller;
 import DAO.CarroDAO;
 import DTO.CarroDTO;
 import java.util.ArrayList;
@@ -52,63 +53,8 @@ public class CarroView extends javax.swing.JFrame {
         }
     }
     
-    private void CarregarCarro()
-    {
-        int setar = tblCarro.getSelectedRow();
-        
-        txtId.setText(tblCarro.getModel().getValueAt(setar, 0).toString());
-        txtMarca.setText(tblCarro.getModel().getValueAt(setar, 1).toString());
-        txtPlaca.setText(tblCarro.getModel().getValueAt(setar, 2).toString());
-        txtPreco.setText(tblCarro.getModel().getValueAt(setar, 3).toString());
-        txtCor.setText(tblCarro.getModel().getValueAt(setar, 4).toString());
-
-    }
+  
     
-    private void LimparCampos()
-    {      
-        txtId.setText(" ");
-        txtMarca.setText(" ");
-        txtPlaca.setText(" ");
-        txtPreco.setText(" ");
-        txtCor.setText(" ");
-
-    }
-    
-    private void AlterarCarro()
-    {
-        int id;
-        String marca, placa, cor;
-        double preco;
-        
-        id = Integer.parseInt(txtId.getText());
-        marca = txtMarca.getText();
-        placa = txtPlaca.getText();
-        preco = Double.parseDouble(txtPreco.getText().replace(",", ".").trim());
-        cor = txtCor.getText();
-
-        
-        CarroDTO objCarrodto = new CarroDTO();
-        objCarrodto.setId(id);
-        objCarrodto.setMarca(marca);
-        objCarrodto.setPlaca(placa);
-        objCarrodto.setPreco(preco);
-        objCarrodto.setCor(cor);
-
-        
-        CarroDAO objCarrodao = new CarroDAO();
-        objCarrodao.UpdateCarro(objCarrodto);
-    }
-    
-    private void ExcluirCarro()
-    {
-        int id;
-        
-        id = Integer.parseInt(txtId.getText());
-        
-        
-        CarroDAO objCarrodao = new CarroDAO();
-        objCarrodao.DeleteCarro(id);
-    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -232,7 +178,15 @@ public class CarroView extends javax.swing.JFrame {
             new String [] {
                 "ID", "MARCA", "PLACA", "PREÇO", "COR"
             }
-        ));
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, true, true, true, true
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
         tblCarro.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 tblCarroMouseClicked(evt);
@@ -247,34 +201,34 @@ public class CarroView extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGap(32, 32, 32)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(txtPlaca, javax.swing.GroupLayout.PREFERRED_SIZE, 173, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel3)
+                    .addComponent(txtMarca, javax.swing.GroupLayout.PREFERRED_SIZE, 173, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel2)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                .addComponent(jLabel1)
-                                .addComponent(txtId, javax.swing.GroupLayout.DEFAULT_SIZE, 173, Short.MAX_VALUE)
-                                .addComponent(txtMarca))
-                            .addComponent(jLabel3)
-                            .addComponent(txtPlaca, javax.swing.GroupLayout.PREFERRED_SIZE, 173, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel1)
+                            .addComponent(txtId, javax.swing.GroupLayout.PREFERRED_SIZE, 173, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(txtPreco, javax.swing.GroupLayout.PREFERRED_SIZE, 178, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel4))
                         .addGap(84, 84, 84)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel5)
                             .addComponent(txtCor, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(layout.createSequentialGroup()
+                        .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(Btn_Cadastrar)
                             .addComponent(Btn_Alterar))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(Btn_Excluir)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(Btn_Pesquisar)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(Btn_Limpar)))))
-                .addContainerGap(259, Short.MAX_VALUE))
+                                .addComponent(Btn_Limpar))
+                            .addComponent(Btn_Excluir))))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -287,30 +241,33 @@ public class CarroView extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(txtId, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(txtCor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(txtMarca, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(txtMarca, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(12, 12, 12)
                 .addComponent(jLabel3)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(txtPlaca, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabel4)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(txtPreco, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 296, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(Btn_Cadastrar)
-                    .addComponent(Btn_Pesquisar)
-                    .addComponent(Btn_Limpar))
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(Btn_Excluir)
-                    .addComponent(Btn_Alterar))
-                .addContainerGap(84, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(23, 23, 23)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(Btn_Cadastrar)
+                            .addComponent(Btn_Pesquisar)
+                            .addComponent(Btn_Limpar))
+                        .addGap(18, 18, 18)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(Btn_Alterar)
+                            .addComponent(Btn_Excluir)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 282, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(190, Short.MAX_VALUE))
         );
 
         pack();
@@ -326,24 +283,9 @@ public class CarroView extends javax.swing.JFrame {
 
     private void Btn_CadastrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Btn_CadastrarActionPerformed
         // TODO add your handling code here:
-         String marca, placa, cor;
-         double preco;
-        
-        marca = txtMarca.getText();
-        placa = txtPlaca.getText();
-        preco = Double.parseDouble(txtPreco.getText().replace(",", ".").trim());
-        cor = txtCor.getText();
-    
-        CarroDTO objCarrodto = new CarroDTO();
-        objCarrodto.setMarca(marca);
-        objCarrodto.setPlaca(placa);
-        objCarrodto.setPreco(preco);
-        objCarrodto.setCor(cor);
-
-        CarroDAO objCarrodao = new CarroDAO();
-        objCarrodao.cadastrarCarro(objCarrodto);
+        Controller.cadastrar( txtMarca.getText(),txtPlaca.getText(),Double.parseDouble(txtPreco.getText().replace(",", ".").trim()), txtCor.getText());
         ListarValoresCarro();
-        LimparCampos();
+        Controller.limpar(txtId, txtMarca, txtPlaca, txtPreco, txtCor);
     }//GEN-LAST:event_Btn_CadastrarActionPerformed
 
     private void Btn_PesquisarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Btn_PesquisarActionPerformed
@@ -353,26 +295,27 @@ public class CarroView extends javax.swing.JFrame {
 
     private void Btn_AlterarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Btn_AlterarActionPerformed
         // TODO add your handling code here:
-        AlterarCarro();
+        Controller.alterar(Integer.parseInt(txtId.getText()),txtMarca.getText(), txtPlaca.getText(), Double.parseDouble(txtPreco.getText().replace(",", ".").trim()), txtCor.getText());
+        
         ListarValoresCarro();
-        LimparCampos();
+        Controller.limpar(txtId, txtMarca, txtPlaca, txtPreco, txtCor);
     }//GEN-LAST:event_Btn_AlterarActionPerformed
 
     private void Btn_LimparActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Btn_LimparActionPerformed
         // TODO add your handling code here:
-          LimparCampos();
+         Controller.limpar(txtId, txtMarca, txtPlaca, txtPreco, txtCor);
     }//GEN-LAST:event_Btn_LimparActionPerformed
 
     private void Btn_ExcluirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Btn_ExcluirActionPerformed
         // TODO add your handling code here:
-        ExcluirCarro();
+        Controller.excluir(Integer.parseInt(txtId.getText()));
         ListarValoresCarro();
-        LimparCampos();
+        Controller.limpar(txtId, txtMarca, txtPlaca, txtPreco, txtCor);
     }//GEN-LAST:event_Btn_ExcluirActionPerformed
 
     private void tblCarroMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblCarroMouseClicked
         // TODO add your handling code here:
-            CarregarCarro();
+            Controller.carregar(txtId, txtMarca, txtPlaca, txtPreco, txtCor, tblCarro);
 
     }//GEN-LAST:event_tblCarroMouseClicked
 

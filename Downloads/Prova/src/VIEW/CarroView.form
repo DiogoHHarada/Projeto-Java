@@ -67,19 +67,17 @@
   <Layout>
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
-          <Group type="102" attributes="0">
+          <Group type="102" alignment="0" attributes="0">
               <EmptySpace min="-2" pref="32" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
+                  <Component id="txtPlaca" min="-2" pref="173" max="-2" attributes="0"/>
+                  <Component id="jLabel3" min="-2" max="-2" attributes="0"/>
+                  <Component id="txtMarca" min="-2" pref="173" max="-2" attributes="0"/>
                   <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
                   <Group type="102" attributes="0">
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Group type="103" alignment="0" groupAlignment="0" max="-2" attributes="0">
-                              <Component id="jLabel1" alignment="0" min="-2" max="-2" attributes="0"/>
-                              <Component id="txtId" alignment="0" pref="173" max="32767" attributes="0"/>
-                              <Component id="txtMarca" alignment="0" max="32767" attributes="0"/>
-                          </Group>
-                          <Component id="jLabel3" alignment="0" min="-2" max="-2" attributes="0"/>
-                          <Component id="txtPlaca" alignment="0" min="-2" pref="173" max="-2" attributes="0"/>
+                          <Component id="jLabel1" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="txtId" alignment="0" min="-2" pref="173" max="-2" attributes="0"/>
                           <Component id="txtPreco" alignment="0" min="-2" pref="178" max="-2" attributes="0"/>
                           <Component id="jLabel4" alignment="0" min="-2" max="-2" attributes="0"/>
                       </Group>
@@ -89,24 +87,25 @@
                           <Component id="txtCor" min="-2" pref="170" max="-2" attributes="0"/>
                       </Group>
                   </Group>
-                  <Component id="jScrollPane4" alignment="0" min="-2" max="-2" attributes="0"/>
                   <Group type="102" alignment="0" attributes="0">
+                      <Component id="jScrollPane4" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="Btn_Cadastrar" min="-2" max="-2" attributes="0"/>
-                          <Component id="Btn_Alterar" min="-2" max="-2" attributes="0"/>
+                          <Component id="Btn_Cadastrar" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="Btn_Alterar" alignment="0" min="-2" max="-2" attributes="0"/>
                       </Group>
-                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="Btn_Excluir" min="-2" max="-2" attributes="0"/>
                           <Group type="102" attributes="0">
                               <Component id="Btn_Pesquisar" min="-2" max="-2" attributes="0"/>
                               <EmptySpace type="unrelated" max="-2" attributes="0"/>
                               <Component id="Btn_Limpar" min="-2" max="-2" attributes="0"/>
                           </Group>
+                          <Component id="Btn_Excluir" min="-2" max="-2" attributes="0"/>
                       </Group>
                   </Group>
               </Group>
-              <EmptySpace pref="259" max="32767" attributes="0"/>
+              <EmptySpace max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -123,32 +122,38 @@
                   <Component id="txtId" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="txtCor" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace type="unrelated" max="-2" attributes="0"/>
-              <Component id="jLabel2" min="-2" pref="16" max="-2" attributes="0"/>
-              <EmptySpace type="separate" max="-2" attributes="0"/>
-              <Component id="txtMarca" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
+              <Component id="jLabel2" min="-2" pref="16" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="txtMarca" min="-2" max="-2" attributes="0"/>
+              <EmptySpace min="-2" pref="12" max="-2" attributes="0"/>
               <Component id="jLabel3" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="txtPlaca" min="-2" max="-2" attributes="0"/>
-              <EmptySpace max="-2" attributes="0"/>
+              <EmptySpace type="unrelated" max="-2" attributes="0"/>
               <Component id="jLabel4" min="-2" max="-2" attributes="0"/>
-              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
               <Component id="txtPreco" min="-2" max="-2" attributes="0"/>
-              <EmptySpace type="unrelated" max="-2" attributes="0"/>
-              <Component id="jScrollPane4" min="-2" pref="296" max="-2" attributes="0"/>
-              <EmptySpace type="separate" max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="3" attributes="0">
-                  <Component id="Btn_Cadastrar" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="Btn_Pesquisar" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="Btn_Limpar" alignment="3" min="-2" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="102" attributes="0">
+                      <EmptySpace min="-2" pref="23" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="3" attributes="0">
+                          <Component id="Btn_Cadastrar" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="Btn_Pesquisar" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="Btn_Limpar" alignment="3" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace type="separate" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="3" attributes="0">
+                          <Component id="Btn_Alterar" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="Btn_Excluir" alignment="3" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                  </Group>
+                  <Group type="102" alignment="0" attributes="0">
+                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                      <Component id="jScrollPane4" min="-2" pref="282" max="-2" attributes="0"/>
+                  </Group>
               </Group>
-              <EmptySpace type="separate" max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="3" attributes="0">
-                  <Component id="Btn_Excluir" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="Btn_Alterar" alignment="3" min="-2" max="-2" attributes="0"/>
-              </Group>
-              <EmptySpace pref="84" max="32767" attributes="0"/>
+              <EmptySpace pref="190" max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -246,7 +251,7 @@
           <Properties>
             <Property name="model" type="javax.swing.table.TableModel" editor="org.netbeans.modules.form.editors2.TableModelEditor">
               <Table columnCount="5" rowCount="1">
-                <Column editable="true" title="ID" type="java.lang.Object"/>
+                <Column editable="false" title="ID" type="java.lang.Object"/>
                 <Column editable="true" title="MARCA" type="java.lang.Object"/>
                 <Column editable="true" title="PLACA" type="java.lang.Object"/>
                 <Column editable="true" title="PRE&#xc7;O" type="java.lang.Object"/>
