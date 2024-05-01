@@ -93,4 +93,31 @@ public class CarroDAO {
             Logger.getLogger(CarroDAO.class.getName()).log(Level.SEVERE, null, e);
         }
     }
+    
+    public ArrayList<CarroDTO> pesquisarCarros(String Pesquisar) throws SQLException {
+        String sql = "SELECT * FROM tblCarro WHERE marca LIKE ? OR placa LIKE ? OR cor LIKE ?";
+
+        try (Connection c = new ConexaoDAO().getConexao(); PreparedStatement ps = c.prepareStatement(sql);) {
+
+            ps.setString(1, "%" + Pesquisar + "%");
+            ps.setString(2, "%" + Pesquisar + "%");
+            ps.setString(3, "%" + Pesquisar + "%");
+
+            ResultSet rs = ps.executeQuery();
+            ArrayList<CarroDTO> carros = new ArrayList<>();
+
+            while (rs.next()) {
+                CarroDTO carro = new CarroDTO();
+                carro.setId(rs.getInt("id"));
+                carro.setMarca(rs.getString("marca"));
+                carro.setPlaca(rs.getString("placa"));
+                carro.setPreco(rs.getDouble("preco"));
+                carro.setCor(rs.getString("cor"));
+
+                carros.add(carro);
+            }
+
+            return carros;
+        }
+    }
 }
