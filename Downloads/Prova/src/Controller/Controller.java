@@ -32,6 +32,12 @@ public class Controller {
         objCarrodao.cadastrarCarro(objCarrodto);
     }
     public static void alterar(int id,String marca, String placa, double preco, String cor){
+        if (marca.isEmpty() || placa.isEmpty() || preco < 10000 || cor.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Por favor, preencha todos os campos.\nO campo preço deve ser ser pelo menos 10000.");
+            return;
+        }
+
+        
         CarroDTO objCarrodto = new CarroDTO();
         objCarrodto.setId(id);
         objCarrodto.setMarca(marca);
