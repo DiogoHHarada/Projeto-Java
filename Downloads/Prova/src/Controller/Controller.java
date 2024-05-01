@@ -6,6 +6,7 @@ package Controller;
 
 import DAO.CarroDAO;
 import DTO.CarroDTO;
+import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 
@@ -15,7 +16,12 @@ import javax.swing.JTextField;
  */
 public class Controller {
     
-    public static void cadastrar(String marca, String placa, double preco, String cor){
+    public static void cadastrar(String marca, String placa, double preco, String cor) {
+        if ( marca.isEmpty() || placa.isEmpty() ||preco < 10000|| cor.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Por favor, preencha todos os campos.");
+            return;
+        }
+
         CarroDTO objCarrodto = new CarroDTO();
         objCarrodto.setMarca(marca);
         objCarrodto.setPlaca(placa);
@@ -25,7 +31,6 @@ public class Controller {
         CarroDAO objCarrodao = new CarroDAO();
         objCarrodao.cadastrarCarro(objCarrodto);
     }
-    
     public static void alterar(int id,String marca, String placa, double preco, String cor){
         CarroDTO objCarrodto = new CarroDTO();
         objCarrodto.setId(id);
