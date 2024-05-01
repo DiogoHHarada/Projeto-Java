@@ -22,36 +22,9 @@ public class CarroView extends javax.swing.JFrame {
      */
     public CarroView() {
         initComponents();
-        ListarValoresCarro();    
+        Controller.ListarValores(tblCarro);    
     }
-    private void ListarValoresCarro()
-    {
-        try
-        {
-            CarroDAO objCarrodao = new CarroDAO();
-            DefaultTableModel model = (DefaultTableModel) tblCarro.getModel();
-            model.setNumRows(0);
-            
-            ArrayList<CarroDTO> lista = objCarrodao.selecionarCarro();
-            
-            for(int num = 0; num < lista.size(); num++)
-            {
-                model.addRow(new Object[]
-                {
-                    lista.get(num).getId(),
-                    lista.get(num).getMarca(),
-                    lista.get(num).getPlaca(),
-                    lista.get(num).getPreco(),
-                    lista.get(num).getCor(),
-
-                });
-            }
-        }
-        catch(Exception e)
-        {
-            JOptionPane.showMessageDialog(null, "Listar valores VIEW"+ e);
-        }
-    }
+   
     
   
     
@@ -86,6 +59,8 @@ public class CarroView extends javax.swing.JFrame {
         jScrollPane4 = new javax.swing.JScrollPane();
         tblCarro = new javax.swing.JTable();
         jLabel6 = new javax.swing.JLabel();
+        txtPesquisar = new javax.swing.JTextField();
+        jLabel7 = new javax.swing.JLabel();
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -208,12 +183,14 @@ public class CarroView extends javax.swing.JFrame {
         jLabel6.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel6.setText("Consecionária Harada");
 
+        jLabel7.setText("Pesquisar");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(49, Short.MAX_VALUE)
+                .addContainerGap(87, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -225,21 +202,25 @@ public class CarroView extends javax.swing.JFrame {
                             .addComponent(jLabel1))
                         .addGap(41, 41, 41)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel5)
-                            .addComponent(txtCor, javax.swing.GroupLayout.PREFERRED_SIZE, 178, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(txtPreco, javax.swing.GroupLayout.PREFERRED_SIZE, 178, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel4))
-                        .addGap(75, 75, 75)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(Btn_Excluir)
                             .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(jLabel5)
+                                    .addComponent(txtCor, javax.swing.GroupLayout.DEFAULT_SIZE, 178, Short.MAX_VALUE)
+                                    .addComponent(txtPreco, javax.swing.GroupLayout.DEFAULT_SIZE, 178, Short.MAX_VALUE)
+                                    .addComponent(jLabel4)
+                                    .addComponent(txtPesquisar))
+                                .addGap(75, 75, 75)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(Btn_Cadastrar)
-                                    .addComponent(Btn_Alterar))
-                                .addGap(18, 18, 18)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(Btn_Limpar)
-                                    .addComponent(Btn_Pesquisar)))))
+                                    .addComponent(Btn_Excluir)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(Btn_Cadastrar)
+                                            .addComponent(Btn_Alterar))
+                                        .addGap(18, 18, 18)
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(Btn_Limpar)
+                                            .addComponent(Btn_Pesquisar)))))
+                            .addComponent(jLabel7)))
                     .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 658, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 669, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -274,11 +255,14 @@ public class CarroView extends javax.swing.JFrame {
                             .addComponent(Btn_Alterar)
                             .addComponent(Btn_Limpar))))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel3)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel3)
+                    .addComponent(jLabel7))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(txtPlaca, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(Btn_Excluir))
+                    .addComponent(Btn_Excluir)
+                    .addComponent(txtPesquisar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(39, 39, 39)
                 .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 282, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(95, 95, 95))
@@ -298,20 +282,20 @@ public class CarroView extends javax.swing.JFrame {
     private void Btn_CadastrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Btn_CadastrarActionPerformed
         // TODO add your handling code here:
         Controller.cadastrar( txtMarca.getText(),txtPlaca.getText(),Double.parseDouble(txtPreco.getText().replace(",", ".").trim()), txtCor.getText());
-        ListarValoresCarro();
+        Controller.ListarValores(tblCarro);
         Controller.limpar(txtId, txtMarca, txtPlaca, txtPreco, txtCor);
     }//GEN-LAST:event_Btn_CadastrarActionPerformed
 
     private void Btn_PesquisarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Btn_PesquisarActionPerformed
         // TODO add your handling code here:
-         ListarValoresCarro();
+         Controller.pesquisar(txtPesquisar.getText().trim(), tblCarro);
     }//GEN-LAST:event_Btn_PesquisarActionPerformed
 
     private void Btn_AlterarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Btn_AlterarActionPerformed
         // TODO add your handling code here:
         Controller.alterar(Integer.parseInt(txtId.getText()),txtMarca.getText(), txtPlaca.getText(), Double.parseDouble(txtPreco.getText().replace(",", ".").trim()), txtCor.getText());
         
-        ListarValoresCarro();
+        Controller.ListarValores(tblCarro);
         Controller.limpar(txtId, txtMarca, txtPlaca, txtPreco, txtCor);
     }//GEN-LAST:event_Btn_AlterarActionPerformed
 
@@ -323,7 +307,7 @@ public class CarroView extends javax.swing.JFrame {
     private void Btn_ExcluirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Btn_ExcluirActionPerformed
         // TODO add your handling code here:
         Controller.excluir(Integer.parseInt(txtId.getText()));
-        ListarValoresCarro();
+        Controller.ListarValores(tblCarro);
         Controller.limpar(txtId, txtMarca, txtPlaca, txtPreco, txtCor);
     }//GEN-LAST:event_Btn_ExcluirActionPerformed
 
@@ -378,6 +362,7 @@ public class CarroView extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane4;
@@ -387,6 +372,7 @@ public class CarroView extends javax.swing.JFrame {
     private javax.swing.JTextField txtCor;
     private javax.swing.JTextField txtId;
     private javax.swing.JTextField txtMarca;
+    private javax.swing.JTextField txtPesquisar;
     private javax.swing.JTextField txtPlaca;
     private javax.swing.JTextField txtPreco;
     // End of variables declaration//GEN-END:variables
