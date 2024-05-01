@@ -26,36 +26,28 @@ public class CarroDAO {
 
     public void cadastrarCarro(CarroDTO carro) {
         String sql = "INSERT INTO tblCarro(marca, placa, preco, cor) VALUES(?,?,?,?)";
-        ps = null;
-        c = new ConexaoDAO().getConexao();
-        try {
-            ps = c.prepareStatement(sql);
+
+        try (Connection c = new ConexaoDAO().getConexao(); PreparedStatement ps = c.prepareStatement(sql)) {
+
             ps.setString(1, carro.getMarca());
             ps.setString(2, carro.getPlaca());
             ps.setDouble(3, carro.getPreco());
             ps.setString(4, carro.getCor());
             ps.execute();
+
             JOptionPane.showMessageDialog(null, "Cadastro Concluido");
+
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "CarroDAO" + e);
-        } finally {
-            try {
-                if (ps != null) {
-                    ps.close();
-                }
-                if (c != null) {
-                    c.close();
-                }
-            } catch (SQLException ex) {
-                Logger.getLogger(CarroDAO.class.getName()).log(Level.SEVERE, null, ex);
-            }
         }
     }
 
     public ArrayList<CarroDTO> selecionarCarro() {
         String sql = "SELECT * FROM tblCarro";
+        ArrayList<CarroDTO> lista = new ArrayList<>(); // Declare and initialize the ArrayList here
 
         try (Connection c = new ConexaoDAO().getConexao(); PreparedStatement ps = c.prepareStatement(sql); ResultSet rs = ps.executeQuery();) {
+
             while (rs.next()) {
                 CarroDTO objCarrodto = new CarroDTO();
                 objCarrodto.setId(rs.getInt("id"));
@@ -63,7 +55,6 @@ public class CarroDAO {
                 objCarrodto.setPlaca(rs.getString("placa"));
                 objCarrodto.setPreco(rs.getDouble("preco"));
                 objCarrodto.setCor(rs.getString("cor"));
-
 
                 lista.add(objCarrodto);
             }
@@ -76,15 +67,15 @@ public class CarroDAO {
 
     public void UpdateCarro(CarroDTO objCarroDTO) {
         String sql = "UPDATE tblCarro SET marca = ?, placa = ?, preco = ?, cor = ? where id = ?";
+
         try (Connection c = new ConexaoDAO().getConexao(); PreparedStatement ps = c.prepareStatement(sql);) {
             ps.setString(1, objCarroDTO.getMarca());
             ps.setString(2, objCarroDTO.getPlaca());
-            ps.setDouble(3, objCarroDTO.getPreco()); 
+            ps.setDouble(3, objCarroDTO.getPreco());
             ps.setString(4, objCarroDTO.getCor());
             System.out.println(objCarroDTO.getId());
             ps.setInt(5, objCarroDTO.getId());
             ps.execute();
-            ps.close();
             JOptionPane.showMessageDialog(null, "Edição Concluida");
         } catch (SQLException e) {
             Logger.getLogger(CarroDAO.class.getName()).log(Level.SEVERE, null, e);
@@ -97,8 +88,9 @@ public class CarroDAO {
         try (Connection c = new ConexaoDAO().getConexao(); PreparedStatement ps = c.prepareStatement(sql);) {
             ps.setInt(1, id);
             ps.execute();
-        } catch (SQLException e) {
             JOptionPane.showMessageDialog(null, "Excluído");
+        } catch (SQLException e) {
+            Logger.getLogger(CarroDAO.class.getName()).log(Level.SEVERE, null, e);
         }
     }
 }
