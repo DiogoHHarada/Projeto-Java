@@ -17,7 +17,7 @@ import javax.swing.JTextField;
 public class Controller {
     
     public static void cadastrar(String marca, String placa, double preco, String cor) {
-        if ( marca.isEmpty() || placa.isEmpty()|| cor.isEmpty()) {
+        if ( marca.isEmpty() || placa.isEmpty()||preco <= 0 || cor.isEmpty()) {
             JOptionPane.showMessageDialog(null, "Por favor, preencha todos os campos.");
             return;
         }
