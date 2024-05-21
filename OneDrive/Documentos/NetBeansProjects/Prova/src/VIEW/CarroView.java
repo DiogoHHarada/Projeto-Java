@@ -5,11 +5,6 @@
 package VIEW;
 
 import Controller.Controller;
-import DAO.CarroDAO;
-import DTO.CarroDTO;
-import java.util.ArrayList;
-import javax.swing.JOptionPane;
-import javax.swing.table.DefaultTableModel;
 
 /**
  *
