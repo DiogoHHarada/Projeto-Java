@@ -1,0 +1,4 @@
+1001, João Silva, 1500.00
+1002, Maria Souza, 3200.50
+1003, Carlos Pereira, 780.25
+1004, Ana Ribeiro, 5000.00

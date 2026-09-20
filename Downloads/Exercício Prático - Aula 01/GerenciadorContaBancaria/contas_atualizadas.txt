@@ -1,0 +1,5 @@
+1001,João Silva,1500.0
+1002,Maria Souza,3200.5
+1003,Carlos Pereira,880.25
+1004,Ana Ribeiro,5000.0
+1005,Mizael,2850.0

@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
- */
 package view;
 
 import exception.SaldoInsuficienteException;
@@ -11,42 +7,61 @@ import service.ContaService;
 import java.io.IOException;
 import javax.swing.JOptionPane;
 
+import javax.swing.table.DefaultTableModel;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-/**
- *
- * @author juliana
- */
 public class ContaGUI extends javax.swing.JFrame {
 
     /**
      * Creates new form ContaGUI
      */
-    
     private ContaCorrente conta;
     private ContaService contaService;
-    
+    private DefaultTableModel modeloTabela;
+    private List<ContaCorrente> contas;
+    private ContaCorrente contaSelecionada;
+
     public ContaGUI() {
-        
+
         initComponents();
         carregarDados();
-        
+
     }
-    
+
     private void carregarDados() {
         contaService = new ContaService();
+        modeloTabela = (DefaultTableModel) tabelaContas.getModel();
         try {
-            this.conta = contaService.lerConta("conta.txt");
-            
-            txtNumero.setText(String.valueOf(conta.getNumero()));
-            txtTitular.setText(conta.getTitular());
-            txtSaldo.setText("R$ " + String.format("%.2f", conta.getSaldo()));
-            txtAreaArquivo.append("Conta carregada com sucesso!\n");
-
+            contas = contaService.carregarContas("contas.txt");
+            atualizarTabela();
+            txtAreaArquivo.append(contas.size() + " conta(s) carregada(s) com sucesso!\n");
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(null, "Erro ao acessar arquivo: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Erro ao acessar arquivo: " + e.getMessage(),
+                    "Erro", JOptionPane.ERROR_MESSAGE);
+            contas = new ArrayList<>();
         }
-
     }
+
+    private void atualizarTabela() {
+        modeloTabela.setRowCount(0);
+        for (ContaCorrente c : contas) {
+            modeloTabela.addRow(new Object[]{
+                c.getNumero(), c.getTitular(), String.format("R$ %.2f", c.getSaldo())
+            });
+        }
+    }
+
+    private void atualizarAposOperacao() {
+        atualizarTabela();
+        try {
+            contaService.salvarContas(contas, "contas_atualizadas.txt");
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, "Erro ao salvar: " + ex.getMessage());
+        }
+    }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -56,6 +71,8 @@ public class ContaGUI extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jScrollPane2 = new javax.swing.JScrollPane();
+        jTable1 = new javax.swing.JTable();
         lblNumero = new javax.swing.JLabel();
         lblTitular = new javax.swing.JLabel();
         lblSaldo = new javax.swing.JLabel();
@@ -67,6 +84,23 @@ public class ContaGUI extends javax.swing.JFrame {
         btnSacar = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         txtAreaArquivo = new javax.swing.JTextArea();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        tabelaContas = new javax.swing.JTable();
+        btnDepositar = new javax.swing.JButton();
+        btnNovaConta = new javax.swing.JButton();
+
+        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane2.setViewportView(jTable1);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("GERENCIADOR DE CONTA BANCÁRIA");
@@ -97,6 +131,46 @@ public class ContaGUI extends javax.swing.JFrame {
         txtAreaArquivo.setRows(5);
         jScrollPane1.setViewportView(txtAreaArquivo);
 
+        tabelaContas.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null},
+                {null, null, null},
+                {null, null, null},
+                {null, null, null}
+            },
+            new String [] {
+                "Número", "Titular", "Saldo"
+            }
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        tabelaContas.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tabelaContasMouseClicked(evt);
+            }
+        });
+        jScrollPane3.setViewportView(tabelaContas);
+
+        btnDepositar.setText("Depositar");
+        btnDepositar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDepositarActionPerformed(evt);
+            }
+        });
+
+        btnNovaConta.setText("Nova Conta");
+        btnNovaConta.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnNovaContaActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -118,31 +192,45 @@ public class ContaGUI extends javax.swing.JFrame {
                             .addComponent(txtTitular, javax.swing.GroupLayout.PREFERRED_SIZE, 300, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(txtSaque, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addComponent(btnSacar, javax.swing.GroupLayout.PREFERRED_SIZE, 427, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(18, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(6, 6, 6)
+                        .addComponent(btnNovaConta, javax.swing.GroupLayout.DEFAULT_SIZE, 300, Short.MAX_VALUE))
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                        .addComponent(btnDepositar, javax.swing.GroupLayout.DEFAULT_SIZE, 306, Short.MAX_VALUE)))
+                .addContainerGap(158, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(12, 12, 12)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(txtNumero, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(lblNumero))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(txtTitular, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(lblTitular))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(txtSaldo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(lblSaldo))
-                .addGap(28, 28, 28)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblSaque)
-                    .addComponent(txtSaque, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(txtNumero, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(lblNumero))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(txtTitular, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(lblTitular))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(txtSaldo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(lblSaldo))
+                        .addGap(28, 28, 28)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(lblSaque)
+                            .addComponent(txtSaque, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(27, 27, 27)
-                .addComponent(btnSacar)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnSacar)
+                    .addComponent(btnDepositar))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnNovaConta))
                 .addContainerGap(14, Short.MAX_VALUE))
         );
 
@@ -150,26 +238,80 @@ public class ContaGUI extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnSacarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSacarActionPerformed
-        // TODO add your handling code here:
+        if (contaSelecionada == null) {
+            JOptionPane.showMessageDialog(this, "Selecione uma conta na tabela.");
+            return;
+        }
         try {
             double valor = Double.parseDouble(txtSaque.getText().trim());
-            contaService.sacarValor(conta, valor);
-            txtSaldo.setText(String.format("%.2f", conta.getSaldo()));
-            txtAreaArquivo.append(String.format("Saque de R$ %.2f realizado com sucesso.\n", valor));
-            contaService.atualizarConta(conta, "conta_atualizada.txt");
-            txtAreaArquivo.append("Dados atualizados salvos em conta_atualizada.txt\n");
+            contaService.sacarValor(contaSelecionada, valor);
+            txtAreaArquivo.append(String.format("Saque de R$ %.2f realizado na conta %d.\n",
+                    valor, contaSelecionada.getNumero()));
+            atualizarAposOperacao();
         } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Informe um valor numérico válido para saque.",
+            JOptionPane.showMessageDialog(this, "Informe um valor numérico válido.",
                     "Erro", JOptionPane.ERROR_MESSAGE);
         } catch (SaldoInsuficienteException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(),
                     "Saldo Insuficiente", JOptionPane.WARNING_MESSAGE);
-            txtAreaArquivo.append("Tentativa de saque inválida: " + ex.getMessage() + "\n");
-        } catch (IOException ex) {
-            JOptionPane.showMessageDialog(this, "Erro ao salvar dados atualizados: " + ex.getMessage(),
-                    "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnSacarActionPerformed
+
+    private void btnDepositarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDepositarActionPerformed
+        if (contaSelecionada == null) {
+            JOptionPane.showMessageDialog(this, "Selecione uma conta na tabela.");
+            return;
+        }
+        try {
+            double valor = Double.parseDouble(txtSaque.getText().trim());
+            if (valor <= 0) {
+                JOptionPane.showMessageDialog(this, "O valor deve ser positivo.");
+                return;
+            }
+            contaService.depositarValor(contaSelecionada, valor);
+            txtAreaArquivo.append(String.format("Depósito de R$ %.2f realizado na conta %d.\n",
+                    valor, contaSelecionada.getNumero()));
+            atualizarAposOperacao();
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Informe um valor numérico válido.",
+                    "Erro", JOptionPane.ERROR_MESSAGE);
+        }    }//GEN-LAST:event_btnDepositarActionPerformed
+
+    private void tabelaContasMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tabelaContasMouseClicked
+        int linha = tabelaContas.getSelectedRow();
+        if (linha < 0 || linha >= contas.size()) {
+            return;
+        }
+
+        contaSelecionada = contas.get(linha);
+        txtNumero.setText(String.valueOf(contaSelecionada.getNumero()));
+        txtTitular.setText(contaSelecionada.getTitular());
+        txtSaldo.setText(String.format("R$ %.2f", contaSelecionada.getSaldo()));    }//GEN-LAST:event_tabelaContasMouseClicked
+
+    private void btnNovaContaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNovaContaActionPerformed
+        try {
+            String numeroStr = JOptionPane.showInputDialog(this, "Número da conta:");
+            if (numeroStr == null) {
+                return;
+            }
+            String titular = JOptionPane.showInputDialog(this, "Titular:");
+            if (titular == null) {
+                return;
+            }
+            String saldoStr = JOptionPane.showInputDialog(this, "Saldo inicial:");
+            if (saldoStr == null) {
+                return;
+            }
+
+            int numero = Integer.parseInt(numeroStr.trim());
+            double saldo = Double.parseDouble(saldoStr.trim());
+
+            contas.add(new ContaCorrente(numero, titular.trim(), saldo));
+            txtAreaArquivo.append("Nova conta " + numero + " criada.\n");
+            atualizarAposOperacao();
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Número ou saldo inválido.");
+        }    }//GEN-LAST:event_btnNovaContaActionPerformed
 
     /**
      * @param args the command line arguments
@@ -205,12 +347,18 @@ public class ContaGUI extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnDepositar;
+    private javax.swing.JButton btnNovaConta;
     private javax.swing.JButton btnSacar;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JTable jTable1;
     private javax.swing.JLabel lblNumero;
     private javax.swing.JLabel lblSaldo;
     private javax.swing.JLabel lblSaque;
     private javax.swing.JLabel lblTitular;
+    private javax.swing.JTable tabelaContas;
     private javax.swing.JTextArea txtAreaArquivo;
     private javax.swing.JTextField txtNumero;
     private javax.swing.JTextField txtSaldo;

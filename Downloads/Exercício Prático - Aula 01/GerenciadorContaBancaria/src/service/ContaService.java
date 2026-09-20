@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package service;
 
 import exception.SaldoInsuficienteException;
@@ -9,14 +5,11 @@ import model.ContaCorrente;
 
 import java.io.IOException;
 import java.nio.file.*;
+import java.util.ArrayList;
 import java.util.List;
 
-/**
- *
- * @author juliana
- */
 public class ContaService {
-    
+
     public ContaCorrente lerConta(String caminho) throws IOException {
         List<String> linhas = Files.readAllLines(Paths.get(caminho));
         String[] dados = linhas.get(0).split(",");
@@ -34,5 +27,44 @@ public class ContaService {
         String dados = conta.getNumero() + "," + conta.getTitular() + "," + conta.getSaldo();
         Files.write(Paths.get(caminho), dados.getBytes());
     }
-    
+
+    public List<ContaCorrente> carregarContas(String caminho) throws IOException {
+        List<ContaCorrente> contas = new ArrayList<>();
+        List<String> linhas = Files.readAllLines(Paths.get(caminho));
+
+        for (String linha : linhas) {
+            if (linha == null || linha.trim().isEmpty()) {
+                continue; // pula linha vazia
+            }
+            String[] dados = linha.split(",");
+            if (dados.length < 3) {
+                continue; // pula linha mal formatada
+            }
+            try {
+                int numero = Integer.parseInt(dados[0].trim());
+                String titular = dados[1].trim();
+                double saldo = Double.parseDouble(dados[2].trim());
+                contas.add(new ContaCorrente(numero, titular, saldo));
+            } catch (NumberFormatException e) {
+                // linha inválida: ignora e continua
+            }
+        }
+        return contas;
+    }
+
+    public void depositarValor(ContaCorrente conta, double valor) {
+        conta.depositar(valor);
+    }
+
+    public void salvarContas(List<ContaCorrente> contas, String caminho) throws IOException {
+        StringBuilder sb = new StringBuilder();
+        for (ContaCorrente conta : contas) {
+            sb.append(conta.getNumero()).append(",")
+                    .append(conta.getTitular()).append(",")
+                    .append(conta.getSaldo())
+                    .append(System.lineSeparator());
+        }
+        Files.write(Paths.get(caminho), sb.toString().getBytes());
+    }
+
 }
