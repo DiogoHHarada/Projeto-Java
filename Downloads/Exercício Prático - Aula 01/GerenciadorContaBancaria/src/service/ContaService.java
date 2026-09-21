@@ -7,8 +7,16 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class ContaService {
+
+    // Faixas de saldo usadas no agrupamento (na ordem em que devem ser exibidas)
+    public static final String FAIXA_ATE_5000 = "Até R$ 5000";
+    public static final String FAIXA_5001_A_10000 = "De R$ 5001 a R$ 10000";
+    public static final String FAIXA_ACIMA_10000 = "Acima de R$ 10000";
+    public static final String[] FAIXAS = {FAIXA_ATE_5000, FAIXA_5001_A_10000, FAIXA_ACIMA_10000};
 
     public ContaCorrente lerConta(String caminho) throws IOException {
         List<String> linhas = Files.readAllLines(Paths.get(caminho));
@@ -65,6 +73,36 @@ public class ContaService {
                     .append(System.lineSeparator());
         }
         Files.write(Paths.get(caminho), sb.toString().getBytes());
+    }
+
+    // ---------- Funcionalidades com Streams API ----------
+
+    // 15.1 - Filtra as contas com saldo superior a R$ 10.000
+    public List<ContaCorrente> filtrarContasSaldoAlto(List<ContaCorrente> contas) {
+        return contas.stream()
+                .filter(conta -> conta.getSaldo() > 10000)
+                .collect(Collectors.toList());
+    }
+
+    // 15.2 - Calcula o saldo total de todas as contas usando reduce()
+    public double calcularSaldoTotal(List<ContaCorrente> contas) {
+        return contas.stream()
+                .map(ContaCorrente::getSaldo)
+                .reduce(0.0, Double::sum);
+    }
+
+    // 15.3 - Agrupa as contas por faixa de saldo usando Collectors.groupingBy
+    public Map<String, List<ContaCorrente>> agruparPorFaixaSaldo(List<ContaCorrente> contas) {
+        return contas.stream()
+                .collect(Collectors.groupingBy(conta -> {
+                    if (conta.getSaldo() <= 5000) {
+                        return FAIXA_ATE_5000;
+                    } else if (conta.getSaldo() <= 10000) {
+                        return FAIXA_5001_A_10000;
+                    } else {
+                        return FAIXA_ACIMA_10000;
+                    }
+                }));
     }
 
 }

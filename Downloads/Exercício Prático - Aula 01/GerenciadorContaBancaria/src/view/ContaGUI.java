@@ -11,6 +11,7 @@ import javax.swing.table.DefaultTableModel;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class ContaGUI extends javax.swing.JFrame {
 
@@ -21,6 +22,7 @@ public class ContaGUI extends javax.swing.JFrame {
     private ContaService contaService;
     private DefaultTableModel modeloTabela;
     private List<ContaCorrente> contas;
+    private List<ContaCorrente> contasExibidas; // lista atualmente mostrada na tabela (todas ou filtradas)
     private ContaCorrente contaSelecionada;
 
     public ContaGUI() {
@@ -35,26 +37,42 @@ public class ContaGUI extends javax.swing.JFrame {
         modeloTabela = (DefaultTableModel) tabelaContas.getModel();
         try {
             contas = contaService.carregarContas("contas.txt");
-            atualizarTabela();
+            atualizarTabela(contas);
             txtAreaArquivo.append(contas.size() + " conta(s) carregada(s) com sucesso!\n");
         } catch (IOException e) {
             JOptionPane.showMessageDialog(this, "Erro ao acessar arquivo: " + e.getMessage(),
                     "Erro", JOptionPane.ERROR_MESSAGE);
             contas = new ArrayList<>();
+            atualizarTabela(contas);
         }
     }
 
-    private void atualizarTabela() {
+    private void atualizarTabela(List<ContaCorrente> lista) {
+        contasExibidas = lista;
         modeloTabela.setRowCount(0);
-        for (ContaCorrente c : contas) {
+        for (ContaCorrente c : lista) {
             modeloTabela.addRow(new Object[]{
                 c.getNumero(), c.getTitular(), String.format("R$ %.2f", c.getSaldo())
             });
         }
+        // mantém a conta selecionada marcada na tabela, se ela estiver sendo exibida
+        int linha = lista.indexOf(contaSelecionada);
+        if (linha >= 0) {
+            tabelaContas.setRowSelectionInterval(linha, linha);
+        }
+    }
+
+    private void exibirDetalhes(ContaCorrente c) {
+        txtNumero.setText(String.valueOf(c.getNumero()));
+        txtTitular.setText(c.getTitular());
+        txtSaldo.setText(String.format("R$ %.2f", c.getSaldo()));
     }
 
     private void atualizarAposOperacao() {
-        atualizarTabela();
+        atualizarTabela(contas);
+        if (contaSelecionada != null) {
+            exibirDetalhes(contaSelecionada); // atualização automática do saldo na tela
+        }
         try {
             contaService.salvarContas(contas, "contas_atualizadas.txt");
         } catch (IOException ex) {
@@ -88,6 +106,10 @@ public class ContaGUI extends javax.swing.JFrame {
         tabelaContas = new javax.swing.JTable();
         btnDepositar = new javax.swing.JButton();
         btnNovaConta = new javax.swing.JButton();
+        btnFiltrarSaldoAlto = new javax.swing.JButton();
+        btnMostrarTodas = new javax.swing.JButton();
+        btnSaldoTotal = new javax.swing.JButton();
+        btnAgruparFaixas = new javax.swing.JButton();
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -171,6 +193,34 @@ public class ContaGUI extends javax.swing.JFrame {
             }
         });
 
+        btnFiltrarSaldoAlto.setText("Contas > R$10000");
+        btnFiltrarSaldoAlto.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnFiltrarSaldoAltoActionPerformed(evt);
+            }
+        });
+
+        btnMostrarTodas.setText("Mostrar Todas");
+        btnMostrarTodas.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnMostrarTodasActionPerformed(evt);
+            }
+        });
+
+        btnSaldoTotal.setText("Saldo Total");
+        btnSaldoTotal.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSaldoTotalActionPerformed(evt);
+            }
+        });
+
+        btnAgruparFaixas.setText("Agrupar por Faixa");
+        btnAgruparFaixas.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAgruparFaixasActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -192,15 +242,22 @@ public class ContaGUI extends javax.swing.JFrame {
                             .addComponent(txtTitular, javax.swing.GroupLayout.PREFERRED_SIZE, 300, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(txtSaque, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addComponent(btnSacar, javax.swing.GroupLayout.PREFERRED_SIZE, 427, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(6, 6, 6)
-                        .addComponent(btnNovaConta, javax.swing.GroupLayout.DEFAULT_SIZE, 300, Short.MAX_VALUE))
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                        .addComponent(btnDepositar, javax.swing.GroupLayout.DEFAULT_SIZE, 306, Short.MAX_VALUE)))
-                .addContainerGap(158, Short.MAX_VALUE))
+                        .addComponent(btnDepositar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGap(23, 23, 23)
+                        .addComponent(btnNovaConta, javax.swing.GroupLayout.PREFERRED_SIZE, 133, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(btnFiltrarSaldoAlto, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(btnSaldoTotal, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(23, 23, 23)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(btnMostrarTodas, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(btnAgruparFaixas, javax.swing.GroupLayout.DEFAULT_SIZE, 133, Short.MAX_VALUE))))
+                .addContainerGap(164, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -226,12 +283,19 @@ public class ContaGUI extends javax.swing.JFrame {
                 .addGap(27, 27, 27)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnSacar)
-                    .addComponent(btnDepositar))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                    .addComponent(btnDepositar)
+                    .addComponent(btnNovaConta))
+                .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnNovaConta))
-                .addContainerGap(14, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(btnFiltrarSaldoAlto)
+                        .addGap(18, 18, 18)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(btnSaldoTotal)
+                            .addComponent(btnAgruparFaixas)))
+                    .addComponent(btnMostrarTodas))
+                .addContainerGap(79, Short.MAX_VALUE))
         );
 
         pack();
@@ -279,14 +343,14 @@ public class ContaGUI extends javax.swing.JFrame {
 
     private void tabelaContasMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tabelaContasMouseClicked
         int linha = tabelaContas.getSelectedRow();
-        if (linha < 0 || linha >= contas.size()) {
+        if (linha < 0 || linha >= contasExibidas.size()) {
             return;
         }
 
-        contaSelecionada = contas.get(linha);
-        txtNumero.setText(String.valueOf(contaSelecionada.getNumero()));
-        txtTitular.setText(contaSelecionada.getTitular());
-        txtSaldo.setText(String.format("R$ %.2f", contaSelecionada.getSaldo()));    }//GEN-LAST:event_tabelaContasMouseClicked
+        // usa a lista exibida, pois a tabela pode estar mostrando só as contas filtradas
+        contaSelecionada = contasExibidas.get(linha);
+        exibirDetalhes(contaSelecionada);
+    }//GEN-LAST:event_tabelaContasMouseClicked
 
     private void btnNovaContaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNovaContaActionPerformed
         try {
@@ -312,6 +376,46 @@ public class ContaGUI extends javax.swing.JFrame {
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Número ou saldo inválido.");
         }    }//GEN-LAST:event_btnNovaContaActionPerformed
+
+    private void btnFiltrarSaldoAltoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnFiltrarSaldoAltoActionPerformed
+        // 15.1 - filtra com Streams as contas com saldo > R$ 10.000 e exibe na tabela
+        List<ContaCorrente> filtradas = contaService.filtrarContasSaldoAlto(contas);
+        atualizarTabela(filtradas);
+        txtAreaArquivo.append(filtradas.size() + " conta(s) com saldo superior a R$ 10000.\n");
+    }//GEN-LAST:event_btnFiltrarSaldoAltoActionPerformed
+
+    private void btnMostrarTodasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMostrarTodasActionPerformed
+        atualizarTabela(contas);
+        txtAreaArquivo.append("Exibindo todas as " + contas.size() + " conta(s).\n");
+    }//GEN-LAST:event_btnMostrarTodasActionPerformed
+
+    private void btnSaldoTotalActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaldoTotalActionPerformed
+        // 15.2 - saldo total de todas as contas calculado com reduce()
+        double saldoTotal = contaService.calcularSaldoTotal(contas);
+        txtAreaArquivo.append(String.format("Saldo total das contas: R$ %.2f\n", saldoTotal));
+        JOptionPane.showMessageDialog(this,
+                String.format("Saldo total de todas as contas: R$ %.2f", saldoTotal),
+                "Saldo Total", JOptionPane.INFORMATION_MESSAGE);
+    }//GEN-LAST:event_btnSaldoTotalActionPerformed
+
+    private void btnAgruparFaixasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAgruparFaixasActionPerformed
+        // 15.3 - contas agrupadas por faixa de saldo com Collectors.groupingBy
+        Map<String, List<ContaCorrente>> grupos = contaService.agruparPorFaixaSaldo(contas);
+
+        StringBuilder sb = new StringBuilder();
+        for (String faixa : ContaService.FAIXAS) {
+            List<ContaCorrente> grupo = grupos.getOrDefault(faixa, new ArrayList<>());
+            sb.append(faixa).append(" (").append(grupo.size()).append(" conta(s)):\n");
+            for (ContaCorrente c : grupo) {
+                sb.append(String.format("    %d - %s - R$ %.2f\n",
+                        c.getNumero(), c.getTitular(), c.getSaldo()));
+            }
+        }
+
+        txtAreaArquivo.append("Contas agrupadas por faixa de saldo:\n" + sb);
+        JOptionPane.showMessageDialog(this, sb.toString(),
+                "Contas por Faixa de Saldo", JOptionPane.INFORMATION_MESSAGE);
+    }//GEN-LAST:event_btnAgruparFaixasActionPerformed
 
     /**
      * @param args the command line arguments
@@ -347,9 +451,13 @@ public class ContaGUI extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnAgruparFaixas;
     private javax.swing.JButton btnDepositar;
+    private javax.swing.JButton btnFiltrarSaldoAlto;
+    private javax.swing.JButton btnMostrarTodas;
     private javax.swing.JButton btnNovaConta;
     private javax.swing.JButton btnSacar;
+    private javax.swing.JButton btnSaldoTotal;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;

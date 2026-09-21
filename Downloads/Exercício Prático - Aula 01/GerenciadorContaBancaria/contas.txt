@@ -2,3 +2,5 @@
 1002, Maria Souza, 3200.50
 1003, Carlos Pereira, 780.25
 1004, Ana Ribeiro, 5000.00
+1005, Pedro Lima, 7500.00
+1006, Fernanda Costa, 15000.00
