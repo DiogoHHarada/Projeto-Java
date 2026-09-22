@@ -3,11 +3,14 @@ package dao;
 import exception.SaldoInsuficienteException;
 import model.Conta;
 import model.ContaCorrente;
+import model.Transferencia;
+import strategy.TarifaTransferenciaStrategy;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -97,17 +100,36 @@ public class ContaDAO {
     // ---------- Aula 06 - Tarefa 4: transferencia com TRANSACAO ----------
 
     /**
-     * Transfere `valor` da conta de origem para a de destino.
-     *
-     * As duas operacoes (debito e credito) formam UMA unidade atomica:
-     * ou as duas gravam (commit) ou nenhuma grava (rollback).
-     *
-     * O debito so acontece se `saldo >= valor` (garantido pelo proprio WHERE,
-     * o que tambem evita saldo negativo se duas transferencias rodarem juntas).
+     * Transferencia sem tarifa. Mantida para nao quebrar o codigo ja existente:
+     * delega para a versao com modalidade usando ISENTA.
      */
-    public void transferir(int numeroOrigem, int numeroDestino, double valor)
+    public Transferencia transferir(int numeroOrigem, int numeroDestino, double valor)
+            throws SQLException, SaldoInsuficienteException {
+        return transferir(numeroOrigem, numeroDestino, valor, TarifaTransferenciaStrategy.ISENTA);
+    }
+
+    /**
+     * Transfere `valor` da origem para o destino, cobrando a tarifa da
+     * modalidade escolhida, e registra a operacao no historico.
+     *
+     * As TRES operacoes formam UMA unidade atomica:
+     *   1. debito na origem  (valor + tarifa)
+     *   2. credito no destino (somente o valor)
+     *   3. INSERT na tabela `transferencias`
+     * Ou as tres gravam (commit) ou nenhuma grava (rollback) - inclusive o
+     * historico, que nao pode registrar uma transferencia que falhou.
+     *
+     * O debito so acontece se `saldo >= valor + tarifa` (garantido pelo proprio
+     * WHERE, o que tambem evita saldo negativo em operacoes simultaneas).
+     */
+    public Transferencia transferir(int numeroOrigem, int numeroDestino, double valor,
+            TarifaTransferenciaStrategy modalidade)
             throws SQLException, SaldoInsuficienteException {
 
+        // ---------- validacoes ----------
+        if (modalidade == null) {
+            throw new IllegalArgumentException("Selecione a modalidade de tarifa.");
+        }
         if (numeroOrigem == numeroDestino) {
             throw new IllegalArgumentException("A conta de origem e a de destino são a mesma.");
         }
@@ -115,33 +137,39 @@ public class ContaDAO {
             throw new IllegalArgumentException("O valor da transferência deve ser positivo.");
         }
 
+        // ---------- Strategy: quem calcula a tarifa e a modalidade ----------
+        double tarifa = modalidade.calcularTarifa(valor);
+        double totalDebitado = valor + tarifa;
+
         // o WHERE ... AND saldo >= ? impede que o saldo fique negativo
         String sqlDebito = "UPDATE contas SET saldo = saldo - ? WHERE numero = ? AND saldo >= ?";
         String sqlCredito = "UPDATE contas SET saldo = saldo + ? WHERE numero = ?";
 
+        TransferenciaDAO transferenciaDAO = new TransferenciaDAO();
         Connection conn = null;
         try {
             conn = Conexao.getConnection();
             conn.setAutoCommit(false); // ---- INICIA A TRANSACAO ----
 
-            // 1) DEBITO na origem
+            // 1) DEBITO na origem: valor + tarifa
             try (PreparedStatement stmt = conn.prepareStatement(sqlDebito)) {
-                stmt.setDouble(1, valor);
+                stmt.setDouble(1, totalDebitado);
                 stmt.setInt(2, numeroOrigem);
-                stmt.setDouble(3, valor);
+                stmt.setDouble(3, totalDebitado);
 
                 if (stmt.executeUpdate() == 0) {
                     // nenhuma linha afetada: ou a conta nao existe, ou faltou saldo
                     if (buscarPorNumero(conn, numeroOrigem) == null) {
                         throw new SQLException("Conta de origem " + numeroOrigem + " não existe.");
                     }
-                    throw new SaldoInsuficienteException(
-                            "Saldo insuficiente na conta " + numeroOrigem + " para transferir R$ "
-                            + String.format("%.2f", valor) + ".");
+                    throw new SaldoInsuficienteException(String.format(
+                            "Saldo insuficiente na conta %d: são necessários R$ %.2f "
+                            + "(R$ %.2f + R$ %.2f de tarifa).",
+                            numeroOrigem, totalDebitado, valor, tarifa));
                 }
             }
 
-            // 2) CREDITO no destino
+            // 2) CREDITO no destino: somente o valor (a tarifa fica com o banco)
             try (PreparedStatement stmt = conn.prepareStatement(sqlCredito)) {
                 stmt.setDouble(1, valor);
                 stmt.setInt(2, numeroDestino);
@@ -152,7 +180,13 @@ public class ContaDAO {
                 }
             }
 
-            conn.commit(); // ---- CONFIRMA AS DUAS OPERACOES ----
+            // 3) HISTORICO na MESMA conexao -> mesma transacao
+            Transferencia registro = new Transferencia(0, numeroOrigem, numeroDestino,
+                    valor, tarifa, modalidade.name(), LocalDateTime.now());
+            transferenciaDAO.inserir(conn, registro);
+
+            conn.commit(); // ---- CONFIRMA AS TRES OPERACOES ----
+            return registro;
 
         } catch (SQLException | SaldoInsuficienteException | RuntimeException e) {
             if (conn != null) {

@@ -1,6 +1,7 @@
 package app;
 
 import dao.ContaDAO;
+import dao.TransferenciaDAO;
 import exception.SaldoInsuficienteException;
 import model.ContaCorrente;
 
@@ -17,12 +18,15 @@ public class MainJDBC {
 
     public static void main(String[] args) {
         ContaDAO dao = new ContaDAO();
+        TransferenciaDAO transferenciaDAO = new TransferenciaDAO();
         int numeroTeste = 9999;
 
         try {
             // ---------- 1. INSERIR ----------
             System.out.println("=== 1. INSERIR ===");
             if (dao.buscarPorNumero(numeroTeste) != null) {
+                // apaga o historico antes: a chave estrangeira impede remover a conta
+                transferenciaDAO.removerPorConta(numeroTeste);
                 dao.remover(numeroTeste); // limpa execucao anterior
             }
             ContaCorrente nova = new ContaCorrente(numeroTeste, "Conta de Teste", 1000.00);
@@ -67,6 +71,7 @@ public class MainJDBC {
             System.out.println("\n=== 5. TRANSFERENCIA (transacao) ===");
             int destino = 9998;
             if (dao.buscarPorNumero(destino) != null) {
+                transferenciaDAO.removerPorConta(destino);
                 dao.remover(destino);
             }
             dao.inserir(new ContaCorrente(destino, "Conta Destino", 100.00));
@@ -111,6 +116,10 @@ public class MainJDBC {
 
             // ---------- 6. REMOVER ----------
             System.out.println("\n=== 6. REMOVER ===");
+            // o historico referencia as contas (chave estrangeira): apaga primeiro
+            System.out.println("Historico de teste apagado: "
+                    + (transferenciaDAO.removerPorConta(numeroTeste)
+                    + transferenciaDAO.removerPorConta(destino)) + " linha(s)");
             System.out.println("Removida? " + dao.remover(numeroTeste));
             System.out.println("Busca apos remover: " + dao.buscarPorNumero(numeroTeste)
                     + "  (esperado null)");

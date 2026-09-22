@@ -1,18 +1,24 @@
 package view;
 
 import dao.ContaDAO;
+import dao.TransferenciaDAO;
 import exception.SaldoInsuficienteException;
 import model.ContaCorrente;
+import model.Transferencia;
 import service.ContaService;
 import service.TarifaService;
 import strategy.TarifaStrategy;
+import strategy.TarifaTransferenciaStrategy;
 
 import java.io.IOException;
 import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 
 import javax.swing.table.DefaultTableModel;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +32,7 @@ public class ContaGUI extends javax.swing.JFrame {
     private ContaService contaService;
     private TarifaService tarifaService;
     private ContaDAO contaDAO;
+    private TransferenciaDAO transferenciaDAO;
     private boolean bancoDisponivel; // false = MySQL fora do ar, trabalha só com arquivo
     private DefaultTableModel modeloTabela;
     private List<ContaCorrente> contas;
@@ -43,6 +50,7 @@ public class ContaGUI extends javax.swing.JFrame {
         contaService = new ContaService();
         tarifaService = new TarifaService();
         contaDAO = new ContaDAO();
+        transferenciaDAO = new TransferenciaDAO();
         modeloTabela = (DefaultTableModel) tabelaContas.getModel();
 
         // Aula 05 - Tarefa 4: na inicialização as contas vêm do banco de dados
@@ -195,6 +203,7 @@ public class ContaGUI extends javax.swing.JFrame {
         btnExcluirConta = new javax.swing.JButton();
         btnRecarregarBanco = new javax.swing.JButton();
         btnTransferir = new javax.swing.JButton();
+        btnHistorico = new javax.swing.JButton();
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -362,6 +371,13 @@ public class ContaGUI extends javax.swing.JFrame {
             }
         });
 
+        btnHistorico.setText("Histórico");
+        btnHistorico.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnHistoricoActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -418,6 +434,8 @@ public class ContaGUI extends javax.swing.JFrame {
                 .addComponent(btnRecarregarBanco, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(btnTransferir, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(btnHistorico, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -467,7 +485,8 @@ public class ContaGUI extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnExcluirConta)
                     .addComponent(btnRecarregarBanco)
-                    .addComponent(btnTransferir))
+                    .addComponent(btnTransferir)
+                    .addComponent(btnHistorico))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -687,6 +706,15 @@ public class ContaGUI extends javax.swing.JFrame {
 
         if (bancoDisponivel) {
             try {
+                // a chave estrangeira do histórico impede excluir conta com transferências
+                int transferencias = transferenciaDAO.contarPorConta(contaSelecionada.getNumero());
+                if (transferencias > 0) {
+                    JOptionPane.showMessageDialog(this,
+                            "A conta " + contaSelecionada.getNumero() + " não pode ser excluída:\n"
+                            + "existe(m) " + transferencias + " transferência(s) no histórico.",
+                            "Exclusão bloqueada", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
                 contaDAO.remover(contaSelecionada.getNumero());
             } catch (SQLException ex) {
                 JOptionPane.showMessageDialog(this, "Erro ao remover do banco: " + ex.getMessage(),
@@ -735,11 +763,41 @@ public class ContaGUI extends javax.swing.JFrame {
             int destino = Integer.parseInt(destinoStr.trim());
             double valor = Double.parseDouble(valorStr.trim());
 
-            contaDAO.transferir(contaSelecionada.getNumero(), destino, valor);
+            // escolha da modalidade de tarifa (Strategy) - as opções vêm do próprio enum
+            TarifaTransferenciaStrategy modalidade = (TarifaTransferenciaStrategy)
+                    JOptionPane.showInputDialog(this,
+                            "Modalidade de tarifa:", "Transferência",
+                            JOptionPane.QUESTION_MESSAGE, null,
+                            TarifaTransferenciaStrategy.values(),
+                            TarifaTransferenciaStrategy.ISENTA);
+            if (modalidade == null) {
+                return;
+            }
 
-            txtAreaArquivo.append(String.format("Transferência de R$ %.2f da conta %d para a conta %d.\n",
-                    valor, contaSelecionada.getNumero(), destino));
-            JOptionPane.showMessageDialog(this, "Transferência realizada com sucesso!");
+            // prévia: mostra a tarifa calculada antes de confirmar
+            double tarifa = modalidade.calcularTarifa(valor);
+            int opcao = JOptionPane.showConfirmDialog(this,
+                    String.format("Da conta %d para a conta %d%n%n"
+                            + "Valor:          R$ %.2f%n"
+                            + "Tarifa (%s): R$ %.2f%n"
+                            + "Total debitado: R$ %.2f%n%nConfirmar?",
+                            contaSelecionada.getNumero(), destino,
+                            valor, modalidade.name(), tarifa, valor + tarifa),
+                    "Confirmar transferência", JOptionPane.YES_NO_OPTION);
+            if (opcao != JOptionPane.YES_OPTION) {
+                return;
+            }
+
+            Transferencia registro = contaDAO.transferir(
+                    contaSelecionada.getNumero(), destino, valor, modalidade);
+
+            txtAreaArquivo.append(String.format(
+                    "Transferência #%d: conta %d -> conta %d | R$ %.2f | tarifa R$ %.2f (%s)\n",
+                    registro.getId(), registro.getContaOrigem(), registro.getContaDestino(),
+                    registro.getValor(), registro.getTarifa(), registro.getModalidadeTarifa()));
+            JOptionPane.showMessageDialog(this, String.format(
+                    "Transferência realizada com sucesso!%n%nTotal debitado: R$ %.2f",
+                    registro.getTotalDebitado()));
 
             // as duas contas mudaram no banco: recarrega a coleção em memória
             recarregarDoBanco();
@@ -759,6 +817,77 @@ public class ContaGUI extends javax.swing.JFrame {
                     "Erro de banco", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnTransferirActionPerformed
+
+    private void btnHistoricoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHistoricoActionPerformed
+        // Consulta ao histórico de transferências
+        if (!bancoDisponivel) {
+            JOptionPane.showMessageDialog(this, "A consulta ao histórico exige conexão com o banco de dados.",
+                    "Banco indisponível", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        try {
+            List<Transferencia> historico;
+            String titulo;
+
+            // sem conta selecionada mostra tudo; com conta selecionada, só ela
+            if (contaSelecionada == null) {
+                historico = transferenciaDAO.listar();
+                titulo = "Histórico de todas as transferências";
+            } else {
+                historico = transferenciaDAO.listarPorConta(contaSelecionada.getNumero());
+                titulo = "Histórico da conta " + contaSelecionada.getNumero()
+                        + " - " + contaSelecionada.getTitular();
+            }
+
+            if (historico.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Nenhuma transferência registrada.",
+                        titulo, JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+            StringBuilder sb = new StringBuilder();
+            sb.append(String.format("%-17s %-8s %-8s %12s %10s  %s%n",
+                    "DATA", "ORIGEM", "DESTINO", "VALOR", "TARIFA", "MODALIDADE"));
+            sb.append("-".repeat(76)).append("\n");
+
+            for (Transferencia t : historico) {
+                sb.append(String.format("%-17s %-8d %-8d %12s %10s  %s%n",
+                        t.getDataHora().format(fmt),
+                        t.getContaOrigem(), t.getContaDestino(),
+                        String.format("R$ %.2f", t.getValor()),
+                        String.format("R$ %.2f", t.getTarifa()),
+                        t.getModalidadeTarifa()));
+            }
+
+            // resumo com Streams (Aula 03)
+            double totalTransferido = historico.stream()
+                    .mapToDouble(Transferencia::getValor)
+                    .sum();
+            double totalTarifas = historico.stream()
+                    .mapToDouble(Transferencia::getTarifa)
+                    .sum();
+
+            sb.append("-".repeat(76)).append("\n");
+            sb.append(String.format("%d transferência(s) | transferido: R$ %.2f | tarifas: R$ %.2f",
+                    historico.size(), totalTransferido, totalTarifas));
+
+            JTextArea area = new JTextArea(sb.toString(), 16, 78);
+            area.setEditable(false);
+            area.setFont(new java.awt.Font(java.awt.Font.MONOSPACED, java.awt.Font.PLAIN, 12));
+            area.setCaretPosition(0);
+
+            JOptionPane.showMessageDialog(this, new JScrollPane(area),
+                    titulo, JOptionPane.INFORMATION_MESSAGE);
+
+            txtAreaArquivo.append(historico.size() + " transferência(s) no histórico consultado.\n");
+
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Erro ao consultar o histórico: " + ex.getMessage(),
+                    "Erro de banco", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_btnHistoricoActionPerformed
 
     /**
      * @param args the command line arguments
@@ -801,6 +930,7 @@ public class ContaGUI extends javax.swing.JFrame {
     private javax.swing.JButton btnFiltrarNumeroPar;
     private javax.swing.JButton btnFiltrarSaldo5000;
     private javax.swing.JButton btnFiltrarSaldoAlto;
+    private javax.swing.JButton btnHistorico;
     private javax.swing.JButton btnMostrarTodas;
     private javax.swing.JButton btnNovaConta;
     private javax.swing.JButton btnOrdenarSaldo;
