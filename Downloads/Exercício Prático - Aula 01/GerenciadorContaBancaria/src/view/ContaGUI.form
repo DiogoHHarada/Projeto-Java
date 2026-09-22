@@ -90,6 +90,19 @@
               </Group>
               <EmptySpace pref="164" max="32767" attributes="0"/>
           </Group>
+          <Group type="102" alignment="0" attributes="0">
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="btnFiltrarSaldo5000" min="-2" pref="150" max="-2" attributes="0"/>
+              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+              <Component id="btnFiltrarNumeroPar" min="-2" pref="150" max="-2" attributes="0"/>
+              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+              <Component id="btnOrdenarSaldo" min="-2" pref="150" max="-2" attributes="0"/>
+              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+              <Component id="btnOrdenarTitular" min="-2" pref="150" max="-2" attributes="0"/>
+              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+              <Component id="btnAplicarTarifa" min="-2" pref="150" max="-2" attributes="0"/>
+              <EmptySpace max="32767" attributes="0"/>
+          </Group>
       </Group>
     </DimensionLayout>
     <DimensionLayout dim="1">
@@ -138,7 +151,15 @@
                   </Group>
                   <Component id="btnMostrarTodas" alignment="0" min="-2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace pref="79" max="32767" attributes="0"/>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="btnFiltrarSaldo5000" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="btnFiltrarNumeroPar" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="btnOrdenarSaldo" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="btnOrdenarTitular" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="btnAplicarTarifa" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -296,6 +317,46 @@
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnAgruparFaixasActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JButton" name="btnFiltrarSaldo5000">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Saldo &gt; R$5000"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnFiltrarSaldo5000ActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JButton" name="btnFiltrarNumeroPar">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="N&#xfa;mero Par"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnFiltrarNumeroParActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JButton" name="btnOrdenarSaldo">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Ordenar por Saldo"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnOrdenarSaldoActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JButton" name="btnOrdenarTitular">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Ordenar por Titular"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnOrdenarTitularActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JButton" name="btnAplicarTarifa">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Aplicar Tarifa"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnAplicarTarifaActionPerformed"/>
       </Events>
     </Component>
   </SubComponents>

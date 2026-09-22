@@ -3,6 +3,8 @@ package view;
 import exception.SaldoInsuficienteException;
 import model.ContaCorrente;
 import service.ContaService;
+import service.TarifaService;
+import strategy.TarifaStrategy;
 
 import java.io.IOException;
 import javax.swing.JOptionPane;
@@ -20,6 +22,7 @@ public class ContaGUI extends javax.swing.JFrame {
      */
     private ContaCorrente conta;
     private ContaService contaService;
+    private TarifaService tarifaService;
     private DefaultTableModel modeloTabela;
     private List<ContaCorrente> contas;
     private List<ContaCorrente> contasExibidas; // lista atualmente mostrada na tabela (todas ou filtradas)
@@ -34,6 +37,7 @@ public class ContaGUI extends javax.swing.JFrame {
 
     private void carregarDados() {
         contaService = new ContaService();
+        tarifaService = new TarifaService();
         modeloTabela = (DefaultTableModel) tabelaContas.getModel();
         try {
             contas = contaService.carregarContas("contas.txt");
@@ -110,6 +114,11 @@ public class ContaGUI extends javax.swing.JFrame {
         btnMostrarTodas = new javax.swing.JButton();
         btnSaldoTotal = new javax.swing.JButton();
         btnAgruparFaixas = new javax.swing.JButton();
+        btnFiltrarSaldo5000 = new javax.swing.JButton();
+        btnFiltrarNumeroPar = new javax.swing.JButton();
+        btnOrdenarSaldo = new javax.swing.JButton();
+        btnOrdenarTitular = new javax.swing.JButton();
+        btnAplicarTarifa = new javax.swing.JButton();
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -221,6 +230,41 @@ public class ContaGUI extends javax.swing.JFrame {
             }
         });
 
+        btnFiltrarSaldo5000.setText("Saldo > R$5000");
+        btnFiltrarSaldo5000.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnFiltrarSaldo5000ActionPerformed(evt);
+            }
+        });
+
+        btnFiltrarNumeroPar.setText("Número Par");
+        btnFiltrarNumeroPar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnFiltrarNumeroParActionPerformed(evt);
+            }
+        });
+
+        btnOrdenarSaldo.setText("Ordenar por Saldo");
+        btnOrdenarSaldo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnOrdenarSaldoActionPerformed(evt);
+            }
+        });
+
+        btnOrdenarTitular.setText("Ordenar por Titular");
+        btnOrdenarTitular.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnOrdenarTitularActionPerformed(evt);
+            }
+        });
+
+        btnAplicarTarifa.setText("Aplicar Tarifa");
+        btnAplicarTarifa.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAplicarTarifaActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -258,6 +302,18 @@ public class ContaGUI extends javax.swing.JFrame {
                             .addComponent(btnMostrarTodas, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(btnAgruparFaixas, javax.swing.GroupLayout.DEFAULT_SIZE, 133, Short.MAX_VALUE))))
                 .addContainerGap(164, Short.MAX_VALUE))
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(btnFiltrarSaldo5000, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(btnFiltrarNumeroPar, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(btnOrdenarSaldo, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(btnOrdenarTitular, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(btnAplicarTarifa, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -295,7 +351,14 @@ public class ContaGUI extends javax.swing.JFrame {
                             .addComponent(btnSaldoTotal)
                             .addComponent(btnAgruparFaixas)))
                     .addComponent(btnMostrarTodas))
-                .addContainerGap(79, Short.MAX_VALUE))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnFiltrarSaldo5000)
+                    .addComponent(btnFiltrarNumeroPar)
+                    .addComponent(btnOrdenarSaldo)
+                    .addComponent(btnOrdenarTitular)
+                    .addComponent(btnAplicarTarifa))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
@@ -417,6 +480,68 @@ public class ContaGUI extends javax.swing.JFrame {
                 "Contas por Faixa de Saldo", JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_btnAgruparFaixasActionPerformed
 
+    private void btnFiltrarSaldo5000ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnFiltrarSaldo5000ActionPerformed
+        // Aula 04 - 11.1: Predicate como estratégia de filtro
+        List<ContaCorrente> filtradas = contaService.filtrar(contas, ContaService.SALDO_MAIOR_5000);
+        atualizarTabela(filtradas);
+        txtAreaArquivo.append(filtradas.size() + " conta(s) com saldo maior que R$ 5000.\n");
+    }//GEN-LAST:event_btnFiltrarSaldo5000ActionPerformed
+
+    private void btnFiltrarNumeroParActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnFiltrarNumeroParActionPerformed
+        // Aula 04 - 11.1: Predicate como estratégia de filtro
+        List<ContaCorrente> filtradas = contaService.filtrar(contas, ContaService.NUMERO_PAR);
+        atualizarTabela(filtradas);
+        txtAreaArquivo.append(filtradas.size() + " conta(s) com número par.\n");
+    }//GEN-LAST:event_btnFiltrarNumeroParActionPerformed
+
+    private void btnOrdenarSaldoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnOrdenarSaldoActionPerformed
+        // Aula 04 - 11.2: Comparator como estratégia de ordenação
+        contaService.ordenar(contas, ContaService.POR_SALDO_DECRESCENTE);
+        atualizarTabela(contas);
+        txtAreaArquivo.append("Contas ordenadas por saldo (decrescente).\n");
+    }//GEN-LAST:event_btnOrdenarSaldoActionPerformed
+
+    private void btnOrdenarTitularActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnOrdenarTitularActionPerformed
+        // Aula 04 - 11.2: Comparator como estratégia de ordenação
+        contaService.ordenar(contas, ContaService.POR_TITULAR);
+        atualizarTabela(contas);
+        txtAreaArquivo.append("Contas ordenadas por titular (A-Z).\n");
+    }//GEN-LAST:event_btnOrdenarTitularActionPerformed
+
+    private void btnAplicarTarifaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAplicarTarifaActionPerformed
+        // Aula 04 - 12: enum TarifaStrategy escolhido em tempo de execução
+        if (contaSelecionada == null) {
+            JOptionPane.showMessageDialog(this, "Selecione uma conta na tabela.");
+            return;
+        }
+
+        TarifaStrategy estrategia = (TarifaStrategy) JOptionPane.showInputDialog(this,
+                "Escolha a estratégia de tarifa:", "Aplicar Tarifa",
+                JOptionPane.QUESTION_MESSAGE, null, TarifaStrategy.values(), TarifaStrategy.FIXA);
+        if (estrategia == null) {
+            return; // usuário cancelou
+        }
+
+        double tarifa = tarifaService.calcularTarifa(contaSelecionada, estrategia);
+        int opcao = JOptionPane.showConfirmDialog(this,
+                String.format("Tarifa %s: R$ %.2f%nDescontar da conta %d?",
+                        estrategia.name(), tarifa, contaSelecionada.getNumero()),
+                "Aplicar Tarifa", JOptionPane.YES_NO_OPTION);
+        if (opcao != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        try {
+            tarifaService.aplicarTarifa(contaSelecionada, estrategia);
+            txtAreaArquivo.append(String.format("Tarifa %s de R$ %.2f aplicada na conta %d.\n",
+                    estrategia.name(), tarifa, contaSelecionada.getNumero()));
+            atualizarAposOperacao();
+        } catch (SaldoInsuficienteException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(),
+                    "Saldo Insuficiente", JOptionPane.WARNING_MESSAGE);
+        }
+    }//GEN-LAST:event_btnAplicarTarifaActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -452,10 +577,15 @@ public class ContaGUI extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAgruparFaixas;
+    private javax.swing.JButton btnAplicarTarifa;
     private javax.swing.JButton btnDepositar;
+    private javax.swing.JButton btnFiltrarNumeroPar;
+    private javax.swing.JButton btnFiltrarSaldo5000;
     private javax.swing.JButton btnFiltrarSaldoAlto;
     private javax.swing.JButton btnMostrarTodas;
     private javax.swing.JButton btnNovaConta;
+    private javax.swing.JButton btnOrdenarSaldo;
+    private javax.swing.JButton btnOrdenarTitular;
     private javax.swing.JButton btnSacar;
     private javax.swing.JButton btnSaldoTotal;
     private javax.swing.JScrollPane jScrollPane1;

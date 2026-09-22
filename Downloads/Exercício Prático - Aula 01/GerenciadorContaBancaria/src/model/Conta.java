@@ -56,5 +56,11 @@ public abstract class Conta {
     public void setSaldo(double saldo) {
         this.saldo = saldo;
     }
-       
+
+    // usado por forEach(System.out::println) nos exemplos com Streams
+    @Override
+    public String toString() {
+        return numero + " - " + titular + " - R$ " + String.format("%.2f", saldo);
+    }
+
 }

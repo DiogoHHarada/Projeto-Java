@@ -1,13 +1,16 @@
 package service;
 
 import exception.SaldoInsuficienteException;
+import model.Conta;
 import model.ContaCorrente;
 
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class ContaService {
@@ -103,6 +106,30 @@ public class ContaService {
                         return FAIXA_ACIMA_10000;
                     }
                 }));
+    }
+
+    // ---------- Strategy com Predicate (filtros) e Comparator (ordenações) - Aula 04 ----------
+
+    // 11.1 - Predicate<Conta>: estratégias de filtro (lambdas)
+    public static final Predicate<Conta> SALDO_MAIOR_5000 = conta -> conta.getSaldo() > 5000;
+    public static final Predicate<Conta> NUMERO_PAR = conta -> conta.getNumero() % 2 == 0;
+
+    // 11.2 - Comparator<Conta>: estratégias de ordenação (lambdas)
+    public static final Comparator<Conta> POR_SALDO_DECRESCENTE =
+            (c1, c2) -> Double.compare(c2.getSaldo(), c1.getSaldo());
+    public static final Comparator<Conta> POR_TITULAR =
+            (c1, c2) -> c1.getTitular().compareTo(c2.getTitular());
+
+    // "Context": recebe qualquer Predicate e filtra com stream().filter(...)
+    public List<ContaCorrente> filtrar(List<ContaCorrente> contas, Predicate<Conta> criterio) {
+        return contas.stream()
+                .filter(criterio)
+                .collect(Collectors.toList());
+    }
+
+    // "Context": recebe qualquer Comparator e ordena a própria lista
+    public void ordenar(List<ContaCorrente> contas, Comparator<Conta> criterio) {
+        contas.sort(criterio);
     }
 
 }
