@@ -103,6 +103,13 @@
               <Component id="btnAplicarTarifa" min="-2" pref="150" max="-2" attributes="0"/>
               <EmptySpace max="32767" attributes="0"/>
           </Group>
+          <Group type="102" alignment="0" attributes="0">
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="btnExcluirConta" min="-2" pref="150" max="-2" attributes="0"/>
+              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+              <Component id="btnRecarregarBanco" min="-2" pref="150" max="-2" attributes="0"/>
+              <EmptySpace max="32767" attributes="0"/>
+          </Group>
       </Group>
     </DimensionLayout>
     <DimensionLayout dim="1">
@@ -158,6 +165,11 @@
                   <Component id="btnOrdenarSaldo" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="btnOrdenarTitular" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="btnAplicarTarifa" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="btnExcluirConta" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="btnRecarregarBanco" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="32767" attributes="0"/>
           </Group>
@@ -357,6 +369,22 @@
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnAplicarTarifaActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JButton" name="btnExcluirConta">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Excluir Conta"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnExcluirContaActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JButton" name="btnRecarregarBanco">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Recarregar do Banco"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnRecarregarBancoActionPerformed"/>
       </Events>
     </Component>
   </SubComponents>

@@ -1,5 +1,6 @@
 package view;
 
+import dao.ContaDAO;
 import exception.SaldoInsuficienteException;
 import model.ContaCorrente;
 import service.ContaService;
@@ -11,6 +12,7 @@ import javax.swing.JOptionPane;
 
 import javax.swing.table.DefaultTableModel;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +25,8 @@ public class ContaGUI extends javax.swing.JFrame {
     private ContaCorrente conta;
     private ContaService contaService;
     private TarifaService tarifaService;
+    private ContaDAO contaDAO;
+    private boolean bancoDisponivel; // false = MySQL fora do ar, trabalha só com arquivo
     private DefaultTableModel modeloTabela;
     private List<ContaCorrente> contas;
     private List<ContaCorrente> contasExibidas; // lista atualmente mostrada na tabela (todas ou filtradas)
@@ -38,16 +42,50 @@ public class ContaGUI extends javax.swing.JFrame {
     private void carregarDados() {
         contaService = new ContaService();
         tarifaService = new TarifaService();
+        contaDAO = new ContaDAO();
         modeloTabela = (DefaultTableModel) tabelaContas.getModel();
+
+        // Aula 05 - Tarefa 4: na inicialização as contas vêm do banco de dados
+        try {
+            contas = contaDAO.listar();
+            bancoDisponivel = true;
+            atualizarTabela(contas);
+            txtAreaArquivo.append(contas.size() + " conta(s) carregada(s) do banco de dados!\n");
+        } catch (SQLException e) {
+            bancoDisponivel = false;
+            JOptionPane.showMessageDialog(this,
+                    "Não foi possível conectar ao banco de dados:\n" + e.getMessage()
+                    + "\n\nO programa vai continuar usando o arquivo contas.txt."
+                    + "\nVerifique o MySQL e os dados em dao/Conexao.java.",
+                    "Banco indisponível", JOptionPane.WARNING_MESSAGE);
+            carregarDoArquivo();
+        }
+    }
+
+    // usado só quando o banco não está acessível (mantém as aulas 03 e 04 funcionando)
+    private void carregarDoArquivo() {
         try {
             contas = contaService.carregarContas("contas.txt");
             atualizarTabela(contas);
-            txtAreaArquivo.append(contas.size() + " conta(s) carregada(s) com sucesso!\n");
+            txtAreaArquivo.append(contas.size() + " conta(s) carregada(s) do arquivo contas.txt.\n");
         } catch (IOException e) {
             JOptionPane.showMessageDialog(this, "Erro ao acessar arquivo: " + e.getMessage(),
                     "Erro", JOptionPane.ERROR_MESSAGE);
             contas = new ArrayList<>();
             atualizarTabela(contas);
+        }
+    }
+
+    // Aula 05 - Tarefa 4: grava no banco o saldo da conta após saque/depósito/tarifa
+    private void persistirSaldo(ContaCorrente c) {
+        if (!bancoDisponivel) {
+            return;
+        }
+        try {
+            contaDAO.atualizarSaldo(c.getNumero(), c.getSaldo());
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Erro ao atualizar o saldo no banco: " + ex.getMessage(),
+                    "Erro de banco", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -119,6 +157,8 @@ public class ContaGUI extends javax.swing.JFrame {
         btnOrdenarSaldo = new javax.swing.JButton();
         btnOrdenarTitular = new javax.swing.JButton();
         btnAplicarTarifa = new javax.swing.JButton();
+        btnExcluirConta = new javax.swing.JButton();
+        btnRecarregarBanco = new javax.swing.JButton();
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -265,6 +305,20 @@ public class ContaGUI extends javax.swing.JFrame {
             }
         });
 
+        btnExcluirConta.setText("Excluir Conta");
+        btnExcluirConta.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnExcluirContaActionPerformed(evt);
+            }
+        });
+
+        btnRecarregarBanco.setText("Recarregar do Banco");
+        btnRecarregarBanco.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnRecarregarBancoActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -314,6 +368,12 @@ public class ContaGUI extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(btnAplicarTarifa, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(btnExcluirConta, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(btnRecarregarBanco, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -358,6 +418,10 @@ public class ContaGUI extends javax.swing.JFrame {
                     .addComponent(btnOrdenarSaldo)
                     .addComponent(btnOrdenarTitular)
                     .addComponent(btnAplicarTarifa))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnExcluirConta)
+                    .addComponent(btnRecarregarBanco))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -372,6 +436,7 @@ public class ContaGUI extends javax.swing.JFrame {
         try {
             double valor = Double.parseDouble(txtSaque.getText().trim());
             contaService.sacarValor(contaSelecionada, valor);
+            persistirSaldo(contaSelecionada); // UPDATE no banco
             txtAreaArquivo.append(String.format("Saque de R$ %.2f realizado na conta %d.\n",
                     valor, contaSelecionada.getNumero()));
             atualizarAposOperacao();
@@ -396,6 +461,7 @@ public class ContaGUI extends javax.swing.JFrame {
                 return;
             }
             contaService.depositarValor(contaSelecionada, valor);
+            persistirSaldo(contaSelecionada); // UPDATE no banco
             txtAreaArquivo.append(String.format("Depósito de R$ %.2f realizado na conta %d.\n",
                     valor, contaSelecionada.getNumero()));
             atualizarAposOperacao();
@@ -433,7 +499,22 @@ public class ContaGUI extends javax.swing.JFrame {
             int numero = Integer.parseInt(numeroStr.trim());
             double saldo = Double.parseDouble(saldoStr.trim());
 
-            contas.add(new ContaCorrente(numero, titular.trim(), saldo));
+            ContaCorrente nova = new ContaCorrente(numero, titular.trim(), saldo);
+
+            // Aula 05 - Tarefa 4: INSERT no banco antes de guardar na coleção
+            if (bancoDisponivel) {
+                try {
+                    contaDAO.inserir(nova);
+                } catch (SQLException ex) {
+                    JOptionPane.showMessageDialog(this,
+                            "Erro ao inserir no banco: " + ex.getMessage()
+                            + "\n(o número da conta já existe?)",
+                            "Erro de banco", JOptionPane.ERROR_MESSAGE);
+                    return; // não adiciona na memória se falhou no banco
+                }
+            }
+
+            contas.add(nova);
             txtAreaArquivo.append("Nova conta " + numero + " criada.\n");
             atualizarAposOperacao();
         } catch (NumberFormatException ex) {
@@ -533,6 +614,7 @@ public class ContaGUI extends javax.swing.JFrame {
 
         try {
             tarifaService.aplicarTarifa(contaSelecionada, estrategia);
+            persistirSaldo(contaSelecionada); // UPDATE no banco
             txtAreaArquivo.append(String.format("Tarifa %s de R$ %.2f aplicada na conta %d.\n",
                     estrategia.name(), tarifa, contaSelecionada.getNumero()));
             atualizarAposOperacao();
@@ -541,6 +623,54 @@ public class ContaGUI extends javax.swing.JFrame {
                     "Saldo Insuficiente", JOptionPane.WARNING_MESSAGE);
         }
     }//GEN-LAST:event_btnAplicarTarifaActionPerformed
+
+    private void btnExcluirContaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExcluirContaActionPerformed
+        // Aula 05 - Tarefa 4: DELETE no banco + remoção da coleção em memória
+        if (contaSelecionada == null) {
+            JOptionPane.showMessageDialog(this, "Selecione uma conta na tabela.");
+            return;
+        }
+
+        int opcao = JOptionPane.showConfirmDialog(this,
+                "Excluir a conta " + contaSelecionada.getNumero()
+                + " (" + contaSelecionada.getTitular() + ")?",
+                "Excluir Conta", JOptionPane.YES_NO_OPTION);
+        if (opcao != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        if (bancoDisponivel) {
+            try {
+                contaDAO.remover(contaSelecionada.getNumero());
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(this, "Erro ao remover do banco: " + ex.getMessage(),
+                        "Erro de banco", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        }
+
+        txtAreaArquivo.append("Conta " + contaSelecionada.getNumero() + " excluída.\n");
+        contas.remove(contaSelecionada);
+        contaSelecionada = null;
+        txtNumero.setText("");
+        txtTitular.setText("");
+        txtSaldo.setText("");
+        atualizarAposOperacao();
+    }//GEN-LAST:event_btnExcluirContaActionPerformed
+
+    private void btnRecarregarBancoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRecarregarBancoActionPerformed
+        // Aula 05 - SELECT: recarrega a coleção em memória a partir do banco
+        try {
+            contas = contaDAO.listar();
+            bancoDisponivel = true;
+            contaSelecionada = null;
+            atualizarTabela(contas);
+            txtAreaArquivo.append(contas.size() + " conta(s) recarregada(s) do banco de dados.\n");
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Erro ao ler o banco: " + ex.getMessage(),
+                    "Erro de banco", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_btnRecarregarBancoActionPerformed
 
     /**
      * @param args the command line arguments
@@ -579,6 +709,7 @@ public class ContaGUI extends javax.swing.JFrame {
     private javax.swing.JButton btnAgruparFaixas;
     private javax.swing.JButton btnAplicarTarifa;
     private javax.swing.JButton btnDepositar;
+    private javax.swing.JButton btnExcluirConta;
     private javax.swing.JButton btnFiltrarNumeroPar;
     private javax.swing.JButton btnFiltrarSaldo5000;
     private javax.swing.JButton btnFiltrarSaldoAlto;
@@ -586,6 +717,7 @@ public class ContaGUI extends javax.swing.JFrame {
     private javax.swing.JButton btnNovaConta;
     private javax.swing.JButton btnOrdenarSaldo;
     private javax.swing.JButton btnOrdenarTitular;
+    private javax.swing.JButton btnRecarregarBanco;
     private javax.swing.JButton btnSacar;
     private javax.swing.JButton btnSaldoTotal;
     private javax.swing.JScrollPane jScrollPane1;
