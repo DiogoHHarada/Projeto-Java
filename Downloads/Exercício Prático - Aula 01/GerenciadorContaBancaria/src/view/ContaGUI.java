@@ -56,10 +56,28 @@ public class ContaGUI extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this,
                     "Não foi possível conectar ao banco de dados:\n" + e.getMessage()
                     + "\n\nO programa vai continuar usando o arquivo contas.txt."
-                    + "\nVerifique o MySQL e os dados em dao/Conexao.java.",
+                    + "\nVerifique se o MySQL está ligado e se o banco existe.",
                     "Banco indisponível", JOptionPane.WARNING_MESSAGE);
             carregarDoArquivo();
+
+        } catch (ExceptionInInitializerError | NoClassDefFoundError e) {
+            // DatabaseConfig não conseguiu ler DB_URL/DB_USER/DB_PASSWORD do ambiente.
+            // (não é SQLException, por isso precisa deste catch separado)
+            bancoDisponivel = false;
+            JOptionPane.showMessageDialog(this,
+                    "Configuração do banco ausente:\n" + causaRaiz(e)
+                    + "\n\nDefina DB_URL, DB_USER e DB_PASSWORD."
+                    + "\nVeja as instruções em config/DatabaseConfig.java."
+                    + "\n\nO programa vai continuar usando o arquivo contas.txt.",
+                    "Configuração ausente", JOptionPane.WARNING_MESSAGE);
+            carregarDoArquivo();
         }
+    }
+
+    // pega a mensagem original de dentro do ExceptionInInitializerError
+    private static String causaRaiz(Throwable e) {
+        Throwable causa = e.getCause();
+        return (causa != null && causa.getMessage() != null) ? causa.getMessage() : e.toString();
     }
 
     // usado só quando o banco não está acessível (mantém as aulas 03 e 04 funcionando)
@@ -73,6 +91,23 @@ public class ContaGUI extends javax.swing.JFrame {
                     "Erro", JOptionPane.ERROR_MESSAGE);
             contas = new ArrayList<>();
             atualizarTabela(contas);
+        }
+    }
+
+    // Aula 05 - SELECT: recarrega a coleção em memória a partir do banco
+    private void recarregarDoBanco() {
+        try {
+            contas = contaDAO.listar();
+            bancoDisponivel = true;
+            contaSelecionada = null;
+            txtNumero.setText("");
+            txtTitular.setText("");
+            txtSaldo.setText("");
+            atualizarTabela(contas);
+            txtAreaArquivo.append(contas.size() + " conta(s) recarregada(s) do banco de dados.\n");
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Erro ao ler o banco: " + ex.getMessage(),
+                    "Erro de banco", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -159,6 +194,7 @@ public class ContaGUI extends javax.swing.JFrame {
         btnAplicarTarifa = new javax.swing.JButton();
         btnExcluirConta = new javax.swing.JButton();
         btnRecarregarBanco = new javax.swing.JButton();
+        btnTransferir = new javax.swing.JButton();
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -319,6 +355,13 @@ public class ContaGUI extends javax.swing.JFrame {
             }
         });
 
+        btnTransferir.setText("Transferir");
+        btnTransferir.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnTransferirActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -373,6 +416,8 @@ public class ContaGUI extends javax.swing.JFrame {
                 .addComponent(btnExcluirConta, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(btnRecarregarBanco, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(btnTransferir, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -421,7 +466,8 @@ public class ContaGUI extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnExcluirConta)
-                    .addComponent(btnRecarregarBanco))
+                    .addComponent(btnRecarregarBanco)
+                    .addComponent(btnTransferir))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -659,18 +705,60 @@ public class ContaGUI extends javax.swing.JFrame {
     }//GEN-LAST:event_btnExcluirContaActionPerformed
 
     private void btnRecarregarBancoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRecarregarBancoActionPerformed
-        // Aula 05 - SELECT: recarrega a coleção em memória a partir do banco
+        recarregarDoBanco();
+    }//GEN-LAST:event_btnRecarregarBancoActionPerformed
+
+    private void btnTransferirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTransferirActionPerformed
+        // Aula 06 - Tarefa 5: transferência entre contas (transação no DAO)
+        if (!bancoDisponivel) {
+            JOptionPane.showMessageDialog(this, "A transferência exige conexão com o banco de dados.",
+                    "Banco indisponível", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        if (contaSelecionada == null) {
+            JOptionPane.showMessageDialog(this, "Selecione na tabela a conta de ORIGEM.");
+            return;
+        }
+
         try {
-            contas = contaDAO.listar();
-            bancoDisponivel = true;
-            contaSelecionada = null;
-            atualizarTabela(contas);
-            txtAreaArquivo.append(contas.size() + " conta(s) recarregada(s) do banco de dados.\n");
+            String destinoStr = JOptionPane.showInputDialog(this,
+                    "Transferir da conta " + contaSelecionada.getNumero()
+                    + "\n\nNúmero da conta de DESTINO:");
+            if (destinoStr == null) {
+                return;
+            }
+            String valorStr = JOptionPane.showInputDialog(this, "Valor a transferir:");
+            if (valorStr == null) {
+                return;
+            }
+
+            int destino = Integer.parseInt(destinoStr.trim());
+            double valor = Double.parseDouble(valorStr.trim());
+
+            contaDAO.transferir(contaSelecionada.getNumero(), destino, valor);
+
+            txtAreaArquivo.append(String.format("Transferência de R$ %.2f da conta %d para a conta %d.\n",
+                    valor, contaSelecionada.getNumero(), destino));
+            JOptionPane.showMessageDialog(this, "Transferência realizada com sucesso!");
+
+            // as duas contas mudaram no banco: recarrega a coleção em memória
+            recarregarDoBanco();
+
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Número da conta ou valor inválido.",
+                    "Erro", JOptionPane.ERROR_MESSAGE);
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(),
+                    "Transferência inválida", JOptionPane.WARNING_MESSAGE);
+        } catch (SaldoInsuficienteException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(),
+                    "Saldo Insuficiente", JOptionPane.WARNING_MESSAGE);
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Erro ao ler o banco: " + ex.getMessage(),
+            JOptionPane.showMessageDialog(this,
+                    "A transferência foi desfeita (rollback):\n" + ex.getMessage(),
                     "Erro de banco", JOptionPane.ERROR_MESSAGE);
         }
-    }//GEN-LAST:event_btnRecarregarBancoActionPerformed
+    }//GEN-LAST:event_btnTransferirActionPerformed
 
     /**
      * @param args the command line arguments
@@ -720,6 +808,7 @@ public class ContaGUI extends javax.swing.JFrame {
     private javax.swing.JButton btnRecarregarBanco;
     private javax.swing.JButton btnSacar;
     private javax.swing.JButton btnSaldoTotal;
+    private javax.swing.JButton btnTransferir;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;

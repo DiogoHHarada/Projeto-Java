@@ -63,20 +63,74 @@ public class MainJDBC {
                         + " | saldo no banco: R$ " + dao.buscarPorNumero(numeroTeste).getSaldo());
             }
 
-            // ---------- 5. REMOVER ----------
-            System.out.println("\n=== 5. REMOVER ===");
+            // ---------- 5. TRANSFERENCIA COM TRANSACAO (Aula 06) ----------
+            System.out.println("\n=== 5. TRANSFERENCIA (transacao) ===");
+            int destino = 9998;
+            if (dao.buscarPorNumero(destino) != null) {
+                dao.remover(destino);
+            }
+            dao.inserir(new ContaCorrente(destino, "Conta Destino", 100.00));
+
+            double origemAntes = dao.buscarPorNumero(numeroTeste).getSaldo();
+            double destinoAntes = dao.buscarPorNumero(destino).getSaldo();
+            System.out.printf("Antes:  origem=%.2f  destino=%.2f%n", origemAntes, destinoAntes);
+
+            // 5a) transferencia valida -> COMMIT
+            dao.transferir(numeroTeste, destino, 300.00);
+            System.out.printf("Depois: origem=%.2f  destino=%.2f  (esperado %.2f e %.2f)%n",
+                    dao.buscarPorNumero(numeroTeste).getSaldo(),
+                    dao.buscarPorNumero(destino).getSaldo(),
+                    origemAntes - 300.00, destinoAntes + 300.00);
+
+            // 5b) saldo insuficiente -> ROLLBACK, nada muda
+            double origemAgora = dao.buscarPorNumero(numeroTeste).getSaldo();
+            double destinoAgora = dao.buscarPorNumero(destino).getSaldo();
+            try {
+                dao.transferir(numeroTeste, destino, 999999.00);
+                System.out.println("ERRO: deveria ter lancado excecao");
+            } catch (SaldoInsuficienteException e) {
+                System.out.println("Saldo insuficiente barrado: " + e.getMessage());
+                System.out.printf("   saldos apos rollback: origem=%.2f destino=%.2f  -> %s%n",
+                        dao.buscarPorNumero(numeroTeste).getSaldo(),
+                        dao.buscarPorNumero(destino).getSaldo(),
+                        (dao.buscarPorNumero(numeroTeste).getSaldo() == origemAgora
+                        && dao.buscarPorNumero(destino).getSaldo() == destinoAgora) ? "INTACTOS" : "MUDARAM!");
+            }
+
+            // 5c) destino inexistente -> o debito ja aconteceu e precisa ser DESFEITO
+            try {
+                dao.transferir(numeroTeste, 12345, 50.00);
+                System.out.println("ERRO: deveria ter lancado excecao");
+            } catch (SQLException e) {
+                System.out.println("Destino inexistente barrado: " + e.getMessage());
+                System.out.printf("   saldo da origem apos rollback: %.2f  -> %s%n",
+                        dao.buscarPorNumero(numeroTeste).getSaldo(),
+                        dao.buscarPorNumero(numeroTeste).getSaldo() == origemAgora
+                        ? "INTACTO (rollback funcionou)" : "PERDEU DINHEIRO!");
+            }
+
+            // ---------- 6. REMOVER ----------
+            System.out.println("\n=== 6. REMOVER ===");
             System.out.println("Removida? " + dao.remover(numeroTeste));
             System.out.println("Busca apos remover: " + dao.buscarPorNumero(numeroTeste)
                     + "  (esperado null)");
+            dao.remover(destino);
 
             System.out.println("\nTodos os testes JDBC executados com sucesso!");
 
         } catch (SQLException e) {
             System.err.println("ERRO DE BANCO DE DADOS: " + e.getMessage());
             System.err.println("Verifique: o MySQL esta ligado? o banco 'banco_digital' foi criado?"
-                    + " usuario/senha em dao/Conexao.java estao corretos?");
+                    + " DB_USER/DB_PASSWORD estao corretos?");
         } catch (SaldoInsuficienteException e) {
             System.err.println("Erro de saldo: " + e.getMessage());
+        } catch (ExceptionInInitializerError | NoClassDefFoundError e) {
+            // variaveis de ambiente do banco nao configuradas (Aula 06)
+            Throwable causa = e.getCause();
+            System.err.println("CONFIGURACAO AUSENTE: "
+                    + (causa != null ? causa.getMessage() : e.toString()));
+            System.err.println("Defina DB_URL, DB_USER e DB_PASSWORD."
+                    + " Veja as instrucoes em config/DatabaseConfig.java.");
         }
     }
 }

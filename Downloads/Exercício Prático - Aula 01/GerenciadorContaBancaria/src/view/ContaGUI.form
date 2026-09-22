@@ -108,6 +108,8 @@
               <Component id="btnExcluirConta" min="-2" pref="150" max="-2" attributes="0"/>
               <EmptySpace type="unrelated" max="-2" attributes="0"/>
               <Component id="btnRecarregarBanco" min="-2" pref="150" max="-2" attributes="0"/>
+              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+              <Component id="btnTransferir" min="-2" pref="150" max="-2" attributes="0"/>
               <EmptySpace max="32767" attributes="0"/>
           </Group>
       </Group>
@@ -170,6 +172,7 @@
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="btnExcluirConta" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="btnRecarregarBanco" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="btnTransferir" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="32767" attributes="0"/>
           </Group>
@@ -385,6 +388,14 @@
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnRecarregarBancoActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JButton" name="btnTransferir">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Transferir"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnTransferirActionPerformed"/>
       </Events>
     </Component>
   </SubComponents>
