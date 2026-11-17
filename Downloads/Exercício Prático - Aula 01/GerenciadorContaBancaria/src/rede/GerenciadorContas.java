@@ -3,6 +3,7 @@ package rede;
 import exception.SaldoInsuficienteException;
 import model.ContaCorrente;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,6 +56,55 @@ public class GerenciadorContas {
         ContaCorrente conta = localizar(numero);
         conta.sacar(valor);   // lanca SaldoInsuficienteException se valor > saldo
         return conta.getSaldo();
+    }
+
+    // ---------- Aula 11: operacoes usadas pela API HTTP (CRUD) ----------
+
+    /** Todas as contas, ordenadas pelo numero. */
+    public synchronized List<ContaCorrente> listar() {
+        return contas.values().stream()
+                .sorted(Comparator.comparingInt(ContaCorrente::getNumero))
+                .toList();
+    }
+
+    public synchronized ContaCorrente buscar(int numero) {
+        return localizar(numero);
+    }
+
+    public synchronized ContaCorrente cadastrar(int numero, String titular, double saldoInicial) {
+        if (numero <= 0) {
+            throw new IllegalArgumentException("NUMERO_INVALIDO");
+        }
+        if (titular == null || titular.isBlank()) {
+            throw new IllegalArgumentException("TITULAR_INVALIDO");
+        }
+        if (saldoInicial < 0) {
+            throw new IllegalArgumentException("VALOR_INVALIDO");
+        }
+        if (contas.containsKey(numero)) {
+            throw new IllegalStateException("CONTA_JA_EXISTE");
+        }
+        ContaCorrente conta = new ContaCorrente(numero, titular.trim(), saldoInicial);
+        contas.put(numero, conta);
+        return conta;
+    }
+
+    /**
+     * Atualiza os dados cadastrais (titular). O saldo NAO e alterado aqui:
+     * ele so muda por deposito ou saque, para preservar as regras do banco.
+     */
+    public synchronized ContaCorrente atualizarTitular(int numero, String novoTitular) {
+        if (novoTitular == null || novoTitular.isBlank()) {
+            throw new IllegalArgumentException("TITULAR_INVALIDO");
+        }
+        ContaCorrente conta = localizar(numero);
+        conta.setTitular(novoTitular.trim());
+        return conta;
+    }
+
+    public synchronized void remover(int numero) {
+        localizar(numero);          // lanca CONTA_INEXISTENTE se nao houver
+        contas.remove(numero);
     }
 
     private ContaCorrente localizar(int numero) {
